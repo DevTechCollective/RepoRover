@@ -62,7 +62,7 @@ if default_branch:
 
     read_me_path = get_readme(file_structure)
     for file in read_me_path:
-        print(get_file_raw(owner, repo, default_branch, file))
+        get_file_raw(owner, repo, default_branch, file)
     if file_structure:
         for item in file_structure:
             #print(item['path'])
