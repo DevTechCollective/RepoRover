@@ -27,6 +27,30 @@ def get_repo_file_structure(owner, repo, branch='master'):
         print("Error:", response.status_code, response.text)
         return None
 
+def get_file_raw(owner, repo, branch, file_path):
+    url = f'https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={branch}'
+    headers = {'Accept': 'application/vnd.github.v3.raw'}
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        return response.text
+    else:
+        print(f"Failed to retrieve file: {response.status_code}")
+        return None
+
+def get_readme(file_structure):
+    output = []
+    for file in file_structure:
+        #print(file['path'][-9:] )
+        if file['path'][-9:] == 'README.md':
+            output.append(file['path'])
+    return output
+
+
+
+
+
 # Replace with your GitHub URL
 github_url = 'https://github.com/lastmile-ai/aiconfig'
 
@@ -35,6 +59,11 @@ default_branch = get_default_branch(owner, repo)
 
 if default_branch:
     file_structure = get_repo_file_structure(owner, repo, default_branch)
+
+    read_me_path = get_readme(file_structure)
+    for file in read_me_path:
+        print(get_file_raw(owner, repo, default_branch, file))
     if file_structure:
         for item in file_structure:
-            print(item['path'])
+            #print(item['path'])
+            pass
