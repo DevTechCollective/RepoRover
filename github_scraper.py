@@ -43,10 +43,17 @@ def get_file_raw(owner, repo, branch, file_path):
         print(f"Failed to retrieve file: {response.status_code}")
         return None
 
+
+def get_root_readme_path(file_structure):
+    for file in file_structure:
+        if file['path'][-9:] == 'README.md':
+            return file['path']
+
+
 def get_readme_path(file_structure):
     output = []
     for file in file_structure:
-        #print(file['path'][-9:] )
+        # print(file['path'][-9:] )
         if file['path'][-9:] == 'README.md':
             output.append(file['path'])
     return output
@@ -89,6 +96,19 @@ def print_condensed_structure(structure, indent_level=0):
                 print_condensed_structure(value, indent_level + 1)
 
 
+def get_condensed_structure(structure, indent_level=0):
+    ret = ""
+    for key, value in structure.items():
+        if key == '_files':
+            for file in value:
+                ret += "  " * indent_level + file + "\n"
+        else:
+            ret += "  " * indent_level + key + "\n"
+            if isinstance(value, dict):
+                ret += get_condensed_structure(value, indent_level + 1)
+    return ret
+
+
 def write_condensed_structure_to_file(structure, file_path='file_struct.txt', indent_level=0, is_initial_call=True):
     mode = 'w' if is_initial_call else 'a'
     with open(file_path, 'a') as file:  # 'a' mode appends to the file
@@ -102,27 +122,31 @@ def write_condensed_structure_to_file(structure, file_path='file_struct.txt', in
                     write_condensed_structure_to_file(value, file_path, indent_level + 1, is_initial_call=False)
 
 
-# Replace with your GitHub URL
-github_url = 'https://github.com/Stability-AI/generative-models'
+if __name__ == "__main__":
+    # Replace with your GitHub URL
+    github_url = 'https://github.com/Stability-AI/generative-models'
 
-owner, repo = get_github_repo_info(github_url)
-default_branch = get_default_branch(owner, repo)
+    owner, repo = get_github_repo_info(github_url)
+    default_branch = get_default_branch(owner, repo)
 
-if default_branch:
-    file_structure = get_repo_file_structure(owner, repo, default_branch)
-    read_me_path = get_readme_path(file_structure)
+    if default_branch:
+        file_structure = get_repo_file_structure(owner, repo, default_branch)
+        read_me_path = get_root_readme_path(file_structure)
+        readme = get_file_raw(owner, repo, default_branch, read_me_path)
+        print(readme)
+        # output_file = "combined-readmes.txt"
+        # with open(output_file, 'a', encoding='utf-8') as file:
 
-    output_file = "combined-readmes.txt"
-    with open(output_file, 'a', encoding='utf-8') as file:
+        #     for file_path in read_me_path:
+        #         curr_readme_file = get_file_raw(owner, repo, default_branch, file_path)
+        #         file.write(curr_readme_file + "\n\n") 
 
-        for file_path in read_me_path:
-            curr_readme_file = get_file_raw(owner, repo, default_branch, file_path)
-            file.write(curr_readme_file + "\n\n") 
+        if file_structure:
+            items = []
+            for item in file_structure:
+                items.append(item['path'])
 
-    if file_structure:
-        items = []
-        for item in file_structure:
-            items.append(item['path'])
-
-        condensed_output = condense_file_structure(items)
-        write_condensed_structure_to_file(condensed_output, is_initial_call=True)
+            condensed_output = condense_file_structure(items)
+            # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
+            cond_str = get_condensed_structure(condensed_output)
+            print(cond_str)

@@ -24,7 +24,7 @@ if st.button("Learn the Repo"):
         thread.join()
         st.success("Done!")
 
-        #generate chatbot area
+        # generate chatbot area
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
