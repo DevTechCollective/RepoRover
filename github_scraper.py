@@ -147,10 +147,10 @@ def get_return(github_url):
             # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
             cond_str = get_condensed_structure(condensed_output)
             # print(cond_str)
-            if len(readme) > 33000:
-                readme = readme[:33000]
-            if len(cond_str) > 33000:
-                cond_str = cond_str[:33000]
+            if len(readme) > 30000:
+                readme = readme[:30000]
+            if len(cond_str) > 20000:
+                cond_str = cond_str[:20000]
             return readme, cond_str
 
 if __name__ == "__main__":
