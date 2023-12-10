@@ -122,7 +122,7 @@ def write_condensed_structure_to_file(structure, file_path='file_struct.txt', in
                     write_condensed_structure_to_file(value, file_path, indent_level + 1, is_initial_call=False)
 
 
-def get_return(github_url):
+def get_return(github_url, full_path=False):
     owner, repo = get_github_repo_info(github_url)
     default_branch = get_default_branch(owner, repo)
 
@@ -143,15 +143,21 @@ def get_return(github_url):
             for item in file_structure:
                 items.append(item['path'])
 
-            condensed_output = condense_file_structure(items)
-            # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
-            cond_str = get_condensed_structure(condensed_output)
-            # print(cond_str)
-            if len(readme) > 33000:
-                readme = readme[:33000]
-            if len(cond_str) > 33000:
-                cond_str = cond_str[:33000]
-            return readme, cond_str
+            if full_path:
+                if len(readme) > 32000:
+                    readme = readme[:32000]
+                return readme, items
+            else:
+                condensed_output = condense_file_structure(items)
+                # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
+                cond_str = get_condensed_structure(condensed_output)
+                # print(cond_str)
+                if len(readme) > 33000:
+                    readme = readme[:33000]
+                if len(cond_str) > 33000:
+                    cond_str = cond_str[:33000]
+                return readme, cond_str
+
 
 if __name__ == "__main__":
     # Replace with your GitHub URL
@@ -176,8 +182,10 @@ if __name__ == "__main__":
             items = []
             for item in file_structure:
                 items.append(item['path'])
+            print(items)
+            # str.join(items, '\n')
 
-            condensed_output = condense_file_structure(items)
-            # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
-            cond_str = get_condensed_structure(condensed_output)
-            print(cond_str)
+            # condensed_output = condense_file_structure(items)
+            # # write_condensed_structure_to_file(condensed_output, is_initial_call=True)
+            # cond_str = get_condensed_structure(condensed_output)
+            # print(cond_str)

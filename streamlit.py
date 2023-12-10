@@ -3,7 +3,7 @@ import threading
 import asyncio
 from app import RunQuery
 
-import streamlit.components.v1 as components
+# import streamlit.components.v1 as components
 
 
 # Function to add a background image
@@ -35,8 +35,20 @@ import streamlit.components.v1 as components
 avatar_url = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
 user_url = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
+# INIT STATE
+# if 'file_struct' not in st.session_state:
+#     st.session_state['file_struct'] = []
+if 'run_query' not in st.session_state:
+    st.session_state['run_query'] = RunQuery()
+# if 'repo_handler' not in st.session_state:
+#     st.session_state['repo_handler'] = GitHubRepoHandler()
+
+# file_struct = st.session_state['file_struct']
+run_query = st.session_state['run_query']
+# repo_handler = st.session_state['repo_handler']
+
 # avatar_image = load_image_from_url(avatar_url)
-run_query = RunQuery()
+# run_query = RunQuery()
 
 
 # Title for the app
@@ -45,9 +57,11 @@ st.title("RepoRover")
 # Input box
 user_input = st.text_input("Enter a Repo URL")
 
+
 # thread function
 def thread_function():
-    return asyncio.run(run_query.update_url(user_input))
+    return asyncio.run(run_query.update_url(user_input, full_path=True))
+
 
 # Button
 if st.button("Learn the Repo"):

@@ -7,3 +7,6 @@ venv/
 
 # Pycache
 __pycache__/
+
+# log
+aiconfig.log

@@ -1,5 +1,6 @@
 import chromadb
 
+
 class GitHubRepoHandler:
     def __init__(self):
         # Initialize ChromaDB Client
@@ -8,7 +9,6 @@ class GitHubRepoHandler:
         # Create collections for README and file structure
         self.readme_collection = self.chroma_client.create_collection(name="readme")
         self.file_structure_collection = self.chroma_client.create_collection(name="file_structures")
-
 
     def update_file_structure(self, file_paths):
         """
@@ -22,17 +22,15 @@ class GitHubRepoHandler:
             )
         print("File structure updated in ChromaDB.")
 
-
-    def query_file_structure(self, query_text):
+    def query_file_structure(self, query_text, n_results=10):
         """
         Query the file structure collection based on a text query.
         """
         context = self.file_structure_collection.query(
             query_texts=[query_text],
-            n_results=10
+            n_results=n_results
         )
         return context
-        
 
     def update_readme(self, readme_content):
         """
@@ -45,7 +43,6 @@ class GitHubRepoHandler:
         )
         print("README updated in ChromaDB.")
 
-
     def query_readme(self, query_text):
         """
         Query the README collection based on a text query.
@@ -57,7 +54,7 @@ class GitHubRepoHandler:
         )
         return context
 
-    
+
 
 
 # Example usage
