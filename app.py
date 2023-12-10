@@ -8,9 +8,9 @@ class RunQuery(object):
     This is a class that runs a query.
     """
     def __init__(self):
-        self.config = AIConfigRuntime.load('Repo Rover_aiconfig.json')
+        self.config = AIConfigRuntime.load('RepoRover_aiconfig.json')
         self.param = ""
-        self.readme_lst = []
+        self.readme = ""
         self.file_struct = ""
         
 
@@ -29,13 +29,12 @@ class RunQuery(object):
         """
         This is a method that passes in the url
         """
-        self.readme_lst, self.file_struct = github_scraper.get_return(url)
+        self.readme, self.file_struct = github_scraper.get_return(url)
         owner, repo = github_scraper.get_github_repo_info(url)
-        for i in range(len(self.readme_lst)):
-            self.param = {
-            "readme_file": self.readme_lst[i],
-            "repo_name": repo
-            }
-            await self.config.run("summarize_readme", self.param)
+        self.param = {
+        "readme_file": self.readme,
+        "repo_name": repo
+        }
+        await self.config.run("summarize_readme", self.param)
 
         
