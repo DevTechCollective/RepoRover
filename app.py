@@ -23,6 +23,7 @@ class RunQuery(object):
         This is a method that passes in the url
         """
         self.param = {"url": url}
+        
         await self.config.run("cell 3", self.param)
         
         

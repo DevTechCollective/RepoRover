@@ -5,7 +5,7 @@ from app import RunQuery
 
 config = RunQuery()
 
-# Title for your app
+# Title for the app
 st.title("RepoRover")
 
 # Input box
