@@ -10,8 +10,11 @@ def add_bg_from_url():
         f"""
         <style>
         .stApp {{
-            background-image: url("images/rover.jpg");
-            background-size: cover;
+            background-color: orange; /* Set the background color */
+            background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url("https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover.png");
+            background-size: contain;
+            background-position: center top;
+            background-repeat: no-repeat;
         }}
         </style>
         """,
@@ -20,20 +23,7 @@ def add_bg_from_url():
 
 
 
-# Function to add a background image
-def add_bg_from_url():
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("images/rover.jpg");
-            background-size: cover;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
+add_bg_from_url()
 
 run_query = RunQuery()
 
