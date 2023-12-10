@@ -1,10 +1,12 @@
 import requests
 
+
 def get_github_repo_info(github_url):
     parts = github_url.split('/')
     owner = parts[-2]
     repo = parts[-1]
     return owner, repo
+
 
 def get_default_branch(owner, repo):
     url = f"https://api.github.com/repos/{owner}/{repo}"
@@ -16,6 +18,7 @@ def get_default_branch(owner, repo):
         print("Error fetching default branch:", response.status_code, response.text)
         return None
 
+
 def get_repo_file_structure(owner, repo, branch='master'):
     url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
     response = requests.get(url)
@@ -26,6 +29,7 @@ def get_repo_file_structure(owner, repo, branch='master'):
     else:
         print("Error:", response.status_code, response.text)
         return None
+
 
 def get_file_raw(owner, repo, branch, file_path):
     url = f'https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={branch}'
@@ -73,15 +77,16 @@ def condense_file_structure(file_structure):
 
     return condensed_structure
 
-# def print_condensed_structure(structure, indent_level=0):
-#     for key, value in structure.items():
-#         if key == '_files':
-#             for file in value:
-#                 print("  " * indent_level + file)
-#         else:
-#             print("  " * indent_level + key)
-#             if isinstance(value, dict):
-#                 print_condensed_structure(value, indent_level + 1)
+
+def print_condensed_structure(structure, indent_level=0):
+    for key, value in structure.items():
+        if key == '_files':
+            for file in value:
+                print("  " * indent_level + file)
+        else:
+            print("  " * indent_level + key)
+            if isinstance(value, dict):
+                print_condensed_structure(value, indent_level + 1)
 
 
 def write_condensed_structure_to_file(structure, file_path='file_struct.txt', indent_level=0, is_initial_call=True):
@@ -98,7 +103,7 @@ def write_condensed_structure_to_file(structure, file_path='file_struct.txt', in
 
 
 # Replace with your GitHub URL
-github_url = 'https://github.com/facebookresearch/PurpleLlama'
+github_url = 'https://github.com/Stability-AI/generative-models'
 
 owner, repo = get_github_repo_info(github_url)
 default_branch = get_default_branch(owner, repo)
