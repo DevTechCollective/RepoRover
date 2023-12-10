@@ -3,6 +3,22 @@ import threading
 import asyncio
 from app import RunQuery
 
+
+# Function to add a background image
+def add_bg_from_url():
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("images/rover.jpg");
+            background-size: cover;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
 config = RunQuery()
 
 # Title for the app
