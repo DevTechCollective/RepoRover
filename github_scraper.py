@@ -1,10 +1,12 @@
 import requests
 
+
 def get_github_repo_info(github_url):
     parts = github_url.split('/')
     owner = parts[-2]
     repo = parts[-1]
     return owner, repo
+
 
 def get_default_branch(owner, repo):
     url = f"https://api.github.com/repos/{owner}/{repo}"
@@ -15,6 +17,7 @@ def get_default_branch(owner, repo):
     else:
         print("Error fetching default branch:", response.status_code, response.text)
         return None
+
 
 def get_repo_file_structure(owner, repo, branch='master'):
     url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
@@ -27,6 +30,7 @@ def get_repo_file_structure(owner, repo, branch='master'):
         print("Error:", response.status_code, response.text)
         return None
 
+
 def get_file_raw(owner, repo, branch, file_path):
     url = f'https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={branch}'
     headers = {'Accept': 'application/vnd.github.v3.raw'}
@@ -38,6 +42,7 @@ def get_file_raw(owner, repo, branch, file_path):
     else:
         print(f"Failed to retrieve file: {response.status_code}")
         return None
+
 
 def get_readme(file_structure):
     output = []
@@ -73,6 +78,7 @@ def condense_file_structure(file_structure):
 
     return condensed_structure
 
+
 def print_condensed_structure(structure, indent_level=0):
     for key, value in structure.items():
         if key == '_files':
@@ -86,7 +92,7 @@ def print_condensed_structure(structure, indent_level=0):
 
 
 # Replace with your GitHub URL
-github_url = 'https://github.com/facebookresearch/PurpleLlama'
+github_url = 'https://github.com/Stability-AI/generative-models'
 
 owner, repo = get_github_repo_info(github_url)
 default_branch = get_default_branch(owner, repo)
