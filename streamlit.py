@@ -11,10 +11,14 @@ st.title("RepoRover")
 # Input box
 user_input = st.text_input("Enter a Repo URL")
 
+# thread function
+def thread_function():
+    asyncio.run(config.update_url(user_input))
+
 # Button
 if st.button("Learn the Repo"):
     if user_input:
-        thread = threading.Thread(target=config.update_url(user_input))
+        thread = threading.Thread(target=thread_function)
         thread.start()
 
         # Show a message while the thread is running

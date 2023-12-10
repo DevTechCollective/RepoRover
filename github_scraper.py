@@ -89,24 +89,25 @@ def print_condensed_structure(structure, indent_level=0):
             if isinstance(value, dict):
                 print_condensed_structure(value, indent_level + 1)
 
+def get_return(github_url):
+    github_url = 'https://github.com/Stability-AI/generative-models'
 
+    owner, repo = get_github_repo_info(github_url)
+    default_branch = get_default_branch(owner, repo)
 
-# Replace with your GitHub URL
-github_url = 'https://github.com/Stability-AI/generative-models'
+    if default_branch:
+        file_structure = get_repo_file_structure(owner, repo, default_branch)
 
-owner, repo = get_github_repo_info(github_url)
-default_branch = get_default_branch(owner, repo)
+        read_me_lst = []
 
-if default_branch:
-    file_structure = get_repo_file_structure(owner, repo, default_branch)
-
-    read_me_path = get_readme(file_structure)
-    for file in read_me_path:
-        print(get_file_raw(owner, repo, default_branch, file))
-    if file_structure:
-        items = []
-        for item in file_structure:
-            # print(item['path'])
-            items.append(item['path'])
-        condensed_output = condense_file_structure(items)
-        print_condensed_structure(condensed_output)
+        read_me_path = get_readme(file_structure)
+        for file in read_me_path:
+            read_me_lst.append(get_file_raw(owner, repo, default_branch, file))
+        if file_structure:
+            items = []
+            for item in file_structure:
+                # print(item['path'])
+                items.append(item['path'])
+            condensed_output = condense_file_structure(items)
+            #print_condensed_structure(condensed_output)
+    return read_me_lst, condensed_output
