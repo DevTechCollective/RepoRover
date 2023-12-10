@@ -29,7 +29,7 @@ class RunQuery(object):
 
         self.param = {
             "user_question": input,
-            "file_structure": context.get('documents'),
+            "file_structure": context.get('metadatas'),
             }
         # inference_options = InferenceOptions(stream=True) # Defines a console streaming callback
         #await self.config.run("chatbot", self.param, options=inference_options)

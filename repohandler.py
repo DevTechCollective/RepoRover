@@ -2,39 +2,83 @@ import chromadb
 from chromadb.utils import embedding_functions
 
 
-
-
 class GitHubRepoHandler:
     def __init__(self):
         # Initialize ChromaDB Client
-        self.chroma_client = chromadb.Client()
+        # self.chroma_client = chromadb.Client()
+        self.chroma_client = chromadb.PersistentClient(path="chroma_data")
         # self.chroma_client.reset()
         self.emb = embedding_functions.DefaultEmbeddingFunction()
         # Check and create collections for README and file structure if they don't exist
 
         self.readme_collection = self.chroma_client.get_or_create_collection(name="readme", embedding_function=self.emb)
-
-
         self.file_structure_collection = self.chroma_client.get_or_create_collection(name="file_structures", embedding_function=self.emb)
 
 
+        # metas = []
+        # for chunk in range(0, len(file_paths), chunks):
+        #     meta = ""
+        #     end = min(chunk+chunks, len(file_paths) - 1)
+        #     for path in file_paths[chunk:end]:
+        #         meta += f"{path}\n"
+        #     meta.append(metas)
 
+    # def update_file_structure(self, file_paths):
+    #     """
+    #     Update ChromaDB with the file structure from a GitHub repository.
+    #     Each file path is stored as a separate document with a sequential ID.
+    #     """
 
-    def update_file_structure(self, file_paths):
+    #     self.chroma_client.delete_collection(name="file_structures")
+    #     self.file_structure_collection = self.chroma_client.create_collection(name="file_structures", embedding_function=self.emb)
+        
+    #     for index, path in enumerate(file_paths):
+    #         self.file_structure_collection.add(
+    #             documents=[path],
+    #             ids=[f"files_{index}"]  # Assigning a sequential ID
+    #         )
+    #     print("File structure updated in ChromaDB.")
+
+    def update_file_structure(self, file_paths, batch_size=10):
         """
-        Update ChromaDB with the file structure from a GitHub repository.
-        Each file path is stored as a separate document with a sequential ID.
+        Update ChromaDB with the file structure from a GitHub repository using batching.
+        Each document in a batch contains multiple file paths in its metadata.
         """
-
+        print("starting file struct update")
+        # Deleting the existing collection
         self.chroma_client.delete_collection(name="file_structures")
-        self.file_structure_collection = self.chroma_client.create_collection(name="file_structures")
+        self.file_structure_collection = self.chroma_client.create_collection(name="file_structures", embedding_function=self.emb)
+
+        documents = []
+        metadatas = []
+        ids = []
+        batch_count = 0
 
         for index, path in enumerate(file_paths):
-            self.file_structure_collection.add(
-                documents=[path],
-                ids=[f"file_{index}"]  # Assigning a sequential ID
-            )
-        print("File structure updated in ChromaDB.")
+            # Grouping file paths into metadata
+            if index % batch_size == 0 and index > 0:
+                # Add the batch to the collection
+                self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
+
+                # Resetting for the next batch
+                documents = []
+                metadatas = []
+                ids = []
+                batch_count += 1
+
+            # Add file path to current batch
+            if index % batch_size == 0:
+                documents.append("Batch " + str(batch_count + 1))
+                metadatas.append({"file_paths": []})
+                ids.append(f"batch_{batch_count}")
+
+            metadatas[-1]["file_paths"].append(path)
+
+        # Add the final batch if it's not empty
+        if documents:
+            self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
+
+        print("File structure updated in ChromaDB with batching.")
 
     def query_file_structure(self, query_text, n_results=10):
         """
@@ -53,7 +97,7 @@ class GitHubRepoHandler:
         """
 
         self.chroma_client.delete_collection(name="readme")
-        self.file_structure_collection = self.chroma_client.create_collection(name="readme")
+        self.file_structure_collection = self.chroma_client.create_collection(name="readme", embedding_function=self.emb)
 
         self.readme_collection.add(
             documents=[readme_content],
