@@ -39,48 +39,87 @@ class GitHubRepoHandler:
     #         )
     #     print("File structure updated in ChromaDB.")
 
-    def update_file_structure(self, file_paths, batch_size=10):
+    # def update_file_structure(self, file_paths, batch_size=25):
+    #     """
+    #     Update ChromaDB with the file structure from a GitHub repository using batching.
+    #     Each document in a batch contains multiple file paths in its metadata as a string.
+    #     """
+    #     print("start update file struct")
+    #     # Deleting the existing collection
+    #     self.chroma_client.delete_collection(name="file_structures")
+    #     self.file_structure_collection = self.chroma_client.create_collection(name="file_structures", embedding_function=self.emb)
+
+    #     documents = []
+    #     metadatas = []
+    #     ids = []
+    #     batch_count = 0
+
+    #     for index, path in enumerate(file_paths):
+    #         # Check if it's time to start a new batch
+    #         if index % batch_size == 0 and index > 0:
+    #             # Add the current batch to the collection
+    #             self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
+
+    #             # Reset for the next batch
+    #             documents = []
+    #             metadatas = []
+    #             ids = []
+    #             batch_count += 1
+
+    #         # Initialize a new batch
+    #         if index % batch_size == 0:
+    #             documents.append(f"Batch_{batch_count + 1}")
+    #             metadatas.append({"file_paths": ""})
+    #             ids.append(f"batch_{batch_count}")
+
+    #         # Append the current path to the metadata string, separated by a newline or another delimiter of your choice
+    #         metadatas[-1]["file_paths"] += path + "\n"
+
+    #     # Add the final batch if it's not empty
+    #     if documents:
+    #         self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
+
+    #     print("File structure updated in ChromaDB with batching.")
+
+    import itertools
+
+    def update_file_structure(self, file_paths, batch_size=75, metadata_batch_size=15):
         """
         Update ChromaDB with the file structure from a GitHub repository using batching.
-        Each document in a batch contains multiple file paths in its metadata.
+        Batches of 50-100 documents are added, with each document's metadata containing 5-10 file paths.
         """
-        print("starting file struct update")
+        print("Start update file structure")
+
         # Deleting the existing collection
         self.chroma_client.delete_collection(name="file_structures")
         self.file_structure_collection = self.chroma_client.create_collection(name="file_structures", embedding_function=self.emb)
 
-        documents = []
-        metadatas = []
-        ids = []
-        batch_count = 0
+        for batch_start in range(0, len(file_paths), batch_size):
+            # Creating a batch of documents
+            batch_end = min(batch_start + batch_size, len(file_paths))
+            batch_file_paths = file_paths[batch_start:batch_end]
 
-        for index, path in enumerate(file_paths):
-            # Grouping file paths into metadata
-            if index % batch_size == 0 and index > 0:
-                # Add the batch to the collection
-                self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
+            documents = []
+            metadatas = []
+            ids = []
 
-                # Resetting for the next batch
-                documents = []
-                metadatas = []
-                ids = []
-                batch_count += 1
+            # Grouping file paths into metadata batches
+            for meta_index, meta_start in enumerate(range(0, len(batch_file_paths), metadata_batch_size)):
+                meta_end = min(meta_start + metadata_batch_size, len(batch_file_paths))
+                metadata_file_paths = batch_file_paths[meta_start:meta_end]
 
-            # Add file path to current batch
-            if index % batch_size == 0:
-                documents.append("Batch " + str(batch_count + 1))
-                metadatas.append({"file_paths": []})
-                ids.append(f"batch_{batch_count}")
+                # Create a document for each metadata batch
+                documents.append(f"Batch_{batch_start // batch_size + 1}_Doc_{meta_index + 1}")
+                metadatas.append({"file_paths": "\n".join(metadata_file_paths)})
+                ids.append(f"batch_{batch_start // batch_size}_doc_{meta_index}")
 
-            metadatas[-1]["file_paths"].append(path)
-
-        # Add the final batch if it's not empty
-        if documents:
+            # Add the batch of documents to the collection
             self.file_structure_collection.add(documents=documents, metadatas=metadatas, ids=ids)
 
         print("File structure updated in ChromaDB with batching.")
 
-    def query_file_structure(self, query_text, n_results=10):
+
+    def query_file_structure(self, query_text, n_results=5):
         """
         Query the file structure collection based on a text query.
         """
