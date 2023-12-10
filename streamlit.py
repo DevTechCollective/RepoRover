@@ -22,7 +22,6 @@ def add_bg_from_url():
     )
 
 
-
 add_bg_from_url()
 
 run_query = RunQuery()
