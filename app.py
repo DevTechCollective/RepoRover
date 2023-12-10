@@ -23,7 +23,11 @@ class RunQuery(object):
             "file_structure": self.file_struct,
             }
         inference_options = InferenceOptions(stream=True) # Defines a console streaming callback
-        return await self.config.run("chatbot", self.param, options=inference_options)
+        #await self.config.run("chatbot", self.param, options=inference_options)
+        
+        await self.config.run("chatbot", self.param)
+        response = self.config.get_output_text("chatbot")
+        return response
         
     async def update_url(self, url):
         """
@@ -32,9 +36,11 @@ class RunQuery(object):
         self.readme, self.file_struct = github_scraper.get_return(url)
         owner, repo = github_scraper.get_github_repo_info(url)
         self.param = {
-        "readme_file": self.readme,
-        "repo_name": repo
+            "readme_file": self.readme,
+            "repo_name": repo
         }
         await self.config.run("summarize_readme", self.param)
+        response = self.config.get_output_text("summarize_readme")
+        return response
 
         
