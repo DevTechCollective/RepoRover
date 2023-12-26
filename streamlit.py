@@ -5,6 +5,9 @@ from app import RunQuery
 import streamlit.components.v1 as components
 
 
+AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
+USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
+
 # Function to add a background image
 # def add_bg_from_url():
 #     st.markdown(
@@ -22,11 +25,7 @@ import streamlit.components.v1 as components
 #         unsafe_allow_html=True
 #     )
 # add_bg_from_url()
-  
-AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
-USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
-# avatar_image = load_image_from_url(avatar_url)
 run_query = RunQuery()
 
 # Title for the app
