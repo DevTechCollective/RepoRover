@@ -61,9 +61,6 @@ if st.button("Learn the Repo"):
         # Join the thread to ensure it completes before moving on
         thread.join()
 
-        # summary = run_query.update_url(user_input)
-        # st.write(summary)
-
         st.success("Done!")
     else: 
         st.write("Please enter a URL")
@@ -92,4 +89,3 @@ if prompt := st.chat_input("Ask me anything about this repo"):
 
 
 # What to do after button is clicked
-
