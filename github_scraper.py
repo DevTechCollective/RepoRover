@@ -167,7 +167,6 @@ if __name__ == "__main__":
         print(readme)
         # output_file = "combined-readmes.txt"
         # with open(output_file, 'a', encoding='utf-8') as file:
-
         #     for file_path in read_me_path:
         #         curr_readme_file = get_file_raw(owner, repo, default_branch, file_path)
         #         file.write(curr_readme_file + "\n\n") 

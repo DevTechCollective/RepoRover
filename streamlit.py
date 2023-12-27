@@ -76,5 +76,4 @@ if prompt := st.chat_input("Ask me anything about this repo"):
 
     st.session_state.messages.append({"role": "assistant", "content": response})
 
-
 # What to do after button is clicked
