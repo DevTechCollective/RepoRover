@@ -2,7 +2,6 @@ import streamlit as st
 import threading
 import asyncio
 from app import RunQuery
-import streamlit.components.v1 as components
 
 
 AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
@@ -27,18 +26,15 @@ if st.button("Learn the Repo"):
         thread = threading.Thread(target=thread_function)
         thread.start()
 
-        # Show a message while the thread is running
         st.info("Processing... Please wait.")
 
-        # Join the thread to ensure it completes before moving on
         thread.join()
         st.session_state.messages = []
-
         st.success("Done!")
     else: 
         st.write("Please enter a URL")
 
-# generate chatbot area
+# generate chat interface
 if "messages" not in st.session_state:
     st.session_state.messages = []
 

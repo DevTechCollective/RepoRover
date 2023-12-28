@@ -27,7 +27,9 @@ class ChatAi():
 
         history = [
             {"role": "user", "content": file_prompt},
+            {"role": "assistant", "content": "I understand this file structure and will remember it."},
             {"role": "user", "content": readme_prompt},
+            {"role": "assistant", "content": "I understand this README.md file and will remember it."},
             {"role": "user", "content": role_prompt}
         ]
         return history
