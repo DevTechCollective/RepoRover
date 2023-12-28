@@ -8,7 +8,16 @@ AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/image
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
 
-run_query = RunQuery()
+# Function to protect the state from Streamlit refresh on press
+def get_query_object():
+    if 'run_query' not in st.session_state:
+    # Object not in state, create a new one
+        st.session_state.run_query = RunQuery()
+    return st.session_state.run_query
+
+
+# run_query = RunQuery()
+run_query = get_query_object()
 
 # Title for the app
 st.title("RepoRover")
