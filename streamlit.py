@@ -32,6 +32,7 @@ if st.button("Learn the Repo"):
 
         # Join the thread to ensure it completes before moving on
         thread.join()
+        st.session_state.messages = []
 
         st.success("Done!")
     else: 
@@ -58,5 +59,3 @@ if prompt := st.chat_input("Ask me anything about this repo"):
         st.markdown(response)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
-
-# What to do after button is clicked
