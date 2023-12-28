@@ -8,23 +8,6 @@ import streamlit.components.v1 as components
 AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
-# Function to add a background image
-# def add_bg_from_url():
-#     st.markdown(
-#         f"""
-#         <style>
-#         .stApp {{
-#             background-color: orange;
-#             background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url("https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover.png");
-#             background-size: contain;
-#             background-position: center top;
-#             background-repeat: no-repeat;
-#         }}
-#         </style>
-#         """,
-#         unsafe_allow_html=True
-#     )
-# add_bg_from_url()
 
 run_query = RunQuery()
 
@@ -32,15 +15,15 @@ run_query = RunQuery()
 st.title("RepoRover")
 
 # Input box
-user_input = st.text_input("Enter a Repo URL")
+repo_url = st.text_input("Enter a Repo URL")
 
 # thread function
 def thread_function():
-    return asyncio.run(run_query.update_url(user_input))
+    return asyncio.run(run_query.update_url(repo_url))
 
 # Button
 if st.button("Learn the Repo"):
-    if user_input:
+    if repo_url:
         thread = threading.Thread(target=thread_function)
         thread.start()
 
