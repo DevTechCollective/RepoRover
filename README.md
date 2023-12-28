@@ -14,3 +14,5 @@ Create a `.env` file that defines your OpenAI API Key:
 
 ### Run:
 `streamlit run streamlit.py`
+
+- Max, Brendan, Marco
