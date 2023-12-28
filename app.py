@@ -53,3 +53,6 @@ class RunQuery(object):
         await self.config.run("summarize_readme", self.param)
         response = self.config.get_output_text("summarize_readme")
         return response
+    
+
+var =  "this is a test"
