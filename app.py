@@ -5,6 +5,7 @@ import github_scraper
 import os
 from open_ai import ChatAi
 
+
 class RunQuery(object):
     """
     This is a class that runs a query.

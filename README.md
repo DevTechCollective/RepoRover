@@ -5,7 +5,7 @@ A developer tool that allows users to quickly understand GitHub repositories tha
 
 ### Install requirments:
 
-pip install -r requirements.txt
+'pip install -r requirements.txt'
 
 ### Run:
-streamlit run streamlit.py
+'streamlit run streamlit.py'

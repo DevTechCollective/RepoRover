@@ -15,6 +15,8 @@ class ChatAi():
         self.file_struct = file_structure
         self.readme = readme_file
         self.repo = repo_name
+
+        # provide scraped info to our model
         self.conversation_history = self.initialize_history()
 
 
