@@ -12,5 +12,5 @@ Simply run and enter the URL of any GitHub repo, then ask away!
 Create a `.env` file that defines your OpenAI API Key:
 `OPENAI_API_KEY = <your-openai-api-key>`
 
-### Run:
+### Run Command:
 `streamlit run streamlit.py`
