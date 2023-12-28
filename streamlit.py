@@ -8,7 +8,7 @@ AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/image
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
 
-# Function to protect the state from Streamlit refresh on press
+# Function to protect the state from Streamlit refresh on button press
 def get_query_object():
     if 'run_query' not in st.session_state:
     # Object not in state, create a new one
