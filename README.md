@@ -1,9 +1,8 @@
-# RepoRover
-## Llama Hackathon 2023
+# RepoRover (started during Llama Hackathon 2023)
 
 ### Overview:
-A developer's "right hand man". This tool assists newcomers in understanding GitHub repositories and their structures.
-Build using config.ai and OpenAi.
+A developer's "right hand man". This tool assists developers in understanding GitHub repositories and their structures.
+Built using config.ai and OpenAi.
 Simply run and enter the URL of any GitHub repo, then ask away!
 
 ### Install requirements:
