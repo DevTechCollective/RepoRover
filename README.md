@@ -1,10 +1,12 @@
 # RepoRover
+## Llama Hackathon 2023
 
-### Llama Hackathon 2023
-A developer tool that allows users to quickly understand GitHub repositories that they are not familiar with utilizing config.ai and OpenAi.
+### Overview:
+A developer's "right hand man". This tool assists newcomers in understanding GitHub repositories and their structures.
+Build using config.ai and OpenAi.
+Simply run and enter the URL of any GitHub repo, then ask away!
 
-### Install requirments:
-
+### Install requirements:
 `pip install -r requirements.txt`
 
 ### Run:
