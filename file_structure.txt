@@ -8,6 +8,7 @@ app.py
 file_structure.txt
 github_scraper.py
 images
+requirements.txt
 streamlit.py
 .streamlit
   config.toml
