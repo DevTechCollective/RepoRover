@@ -53,3 +53,5 @@ class RunQuery(object):
         self.repo_name = repo
 
         self.chatBot = ChatAi(self.file_struct, self.readme, self.repo_name)
+
+        
