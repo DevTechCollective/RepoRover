@@ -13,4 +13,4 @@ Create a `.env` file that defines your OpenAI API Key:
 `OPENAI_API_KEY = <your-openai-api-key>`
 
 ### Run Command:
-`streamlit run streamlit.py`
+`streamlit run app.py`
