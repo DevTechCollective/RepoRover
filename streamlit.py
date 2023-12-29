@@ -11,7 +11,7 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 # Function to protect the state from Streamlit refresh on button press
 def get_query_object():
     if 'run_query' not in st.session_state:
-    # Object not in state, create a new one
+        # Object not in state, create a new one
         st.session_state.run_query = RunQuery()
     return st.session_state.run_query
 
@@ -25,9 +25,11 @@ st.title("RepoRover")
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
 
+
 # thread function
 def thread_function():
     return asyncio.run(run_query.update_url(repo_url))
+
 
 # Button
 if st.button("Learn the Repo"):
@@ -40,7 +42,7 @@ if st.button("Learn the Repo"):
         thread.join()
         st.session_state.messages = []
         st.success("Done!")
-    else: 
+    else:
         st.write("Please enter a URL")
 
 # generate chat interface

@@ -19,7 +19,6 @@ class ChatAi():
         # provide scraped info to our model
         self.conversation_history = self.initialize_history()
 
-
     def initialize_history(self):
         file_prompt = "Consider the following file structure from the " + self.repo + " GitHub repository: " + self.file_struct
         readme_prompt = "Consider this README.md file from the same GitHub repository: " + self.readme
@@ -33,7 +32,6 @@ class ChatAi():
             {"role": "user", "content": role_prompt}
         ]
         return history
-    
 
     def run_chat(self, user_input):
 
