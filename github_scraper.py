@@ -22,7 +22,7 @@ def get_default_branch(owner, repo):
 def get_repo_file_structure(owner, repo, branch='master'):
     url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         return data['tree']
@@ -152,6 +152,7 @@ def get_return(github_url):
             if len(cond_str) > 20000:
                 cond_str = cond_str[:20000]
             return readme, cond_str
+
 
 if __name__ == "__main__":
     # Replace with your GitHub URL
