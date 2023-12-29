@@ -2,3 +2,7 @@ python-aiconfig
 streamlit
 altair==4
 openai
+sentence_transformers
+faiss-cpu
+numpy
+tiktoken

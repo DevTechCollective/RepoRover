@@ -11,10 +11,10 @@ class RunQuery(object):
     This is a class that runs a query.
     """
     def __init__(self):
-        self.param = ""
-        self.readme = ""
-        self.file_struct = ""
-        self.repo_name =""
+        # self.param = ""
+        self.readme = "hello readme"
+        self.file_struct = "hell this is the file struct"
+        self.repo_name ="testnamemax"
 
         # if os.path.exists("file_structure.txt") and os.path.getsize("file_structure.txt") != 0:
         #     with open("file_structure.txt", "r") as file:
