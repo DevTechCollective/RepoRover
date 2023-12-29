@@ -1,23 +1,20 @@
+from chat_rover import ChatRover
 import streamlit as st
-import threading
-import asyncio
-from app import RunQuery
+from github_scraper import GitHubScraper
 
 
 AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
 
-# Function to protect the state from Streamlit refresh on button press
-def get_query_object():
-    if 'run_query' not in st.session_state:
-        # Object not in state, create a new one
-        st.session_state.run_query = RunQuery()
-    return st.session_state.run_query
+# Updates rover based on URL
+def update_url(url):
+    scraper = GitHubScraper(url)
+    st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
 
 
-# run_query = RunQuery()
-run_query = get_query_object()
+# Get the Rover if it exists
+chat_rover = st.session_state.chat_rover if 'chat_rover' in st.session_state else None
 
 # Title for the app
 st.title("RepoRover")
@@ -25,21 +22,11 @@ st.title("RepoRover")
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
 
-
-# thread function
-def thread_function():
-    return asyncio.run(run_query.update_url(repo_url))
-
-
 # Button
 if st.button("Learn the Repo"):
     if repo_url:
-        thread = threading.Thread(target=thread_function)
-        thread.start()
-
         st.info("Processing... Please wait.")
-
-        thread.join()
+        update_url(repo_url)
         st.session_state.messages = []
         st.success("Done!")
     else:
@@ -58,7 +45,7 @@ if prompt := st.chat_input("Ask me anything about this repo"):
     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    chat_response = asyncio.run(run_query.get_query(prompt))
+    chat_response = chat_rover.run_chat(prompt)
 
     response = f"AI: {chat_response}"
 

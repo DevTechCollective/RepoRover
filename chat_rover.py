@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class ChatAi():
+class ChatRover():
 
     def __init__(self, file_structure, readme_file, repo_name):
         api_key = os.getenv('OPENAI_API_KEY')
@@ -20,16 +20,17 @@ class ChatAi():
         self.conversation_history = self.initialize_history()
 
     def initialize_history(self):
-        file_prompt = "Consider the following file structure from the " + self.repo + " GitHub repository: " + self.file_struct
-        readme_prompt = "Consider this README.md file from the same GitHub repository: " + self.readme
-        role_prompt = "You are an expert on this repo and will answer any questions I may have about the " + self.repo + " repository."
-
+        role_prompt = f"You are an expert on the {self.repo} repository. Given the file structure and README you will understand what the repo is and how files are organized. You will then be able to answer questions related to this repo, refering to specific files if helpful."
+        file_prompt = f"Consider the following file structure from the GitHub repository:\n{self.file_struct}"
+        readme_prompt = "Consider this README.md file from the same GitHub repository:\n{self.readme}"
+        
         history = [
+            {"role": "system", "content": role_prompt},
             {"role": "user", "content": file_prompt},
             {"role": "assistant", "content": "I understand this file structure and will remember it."},
             {"role": "user", "content": readme_prompt},
             {"role": "assistant", "content": "I understand this README.md file and will remember it."},
-            {"role": "user", "content": role_prompt}
+            # {"role": "user", "content": role_prompt}
         ]
         return history
 
