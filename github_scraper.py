@@ -81,21 +81,6 @@ class GitHubScraper:
         return formatted_structure
 
 
-# def get_return(github_url):
-#     owner, repo = get_github_repo_info(github_url)
-#     default_branch = get_default_branch(owner, repo)
-
-#     if default_branch:
-#         file_structure = get_repo_file_structure(owner, repo, default_branch)
-#         read_me_path = get_root_readme_path(file_structure)
-#         readme = get_file_raw(owner, repo, default_branch, read_me_path)
-#         if len(readme) > 30000:
-#             readme = readme[:30000]
-#         if len(file_structure) > 20000:
-#             file_structure = file_structure[:20000]
-#         return readme, file_structure
-
-
 if __name__ == "__main__":
     # Replace with your GitHub URL
     github_url = 'https://github.com/Stability-AI/generative-models'
