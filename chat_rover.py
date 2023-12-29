@@ -12,8 +12,8 @@ class ChatRover():
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
 
-        self.file_struct = file_structure
-        self.readme = readme_file
+        self.file_struct = self._trim_to_context(file_structure)
+        self.readme = self._trim_to_context(readme_file)
         self.repo = repo_name
 
         # provide scraped info to our model
@@ -30,7 +30,6 @@ class ChatRover():
             {"role": "assistant", "content": "I understand this file structure and will remember it."},
             {"role": "user", "content": readme_prompt},
             {"role": "assistant", "content": "I understand this README.md file and will remember it."},
-            # {"role": "user", "content": role_prompt}
         ]
         return history
 
@@ -51,3 +50,9 @@ class ChatRover():
 
         self.conversation_history.append({"role": "assistant", "content": response})
         return response
+
+    # TODO: replace with RAG
+    def _trim_to_context(self, item, length=30000):
+        if item > length:
+            return item[:length]
+        return item
