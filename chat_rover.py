@@ -20,16 +20,16 @@ class ChatRover():
         self.conversation_history = self.initialize_history()
 
     def initialize_history(self):
-        role_prompt = f"You are an expert on the {self.repo} repository. Given the file structure and README you will understand what the repo is and how files are organized. You will then be able to answer questions related to this repo, refering to specific files if helpful."
+        role_prompt = f"You are an expert on the {self.repo} repository. You are given the file structure and README you will understand what the repo is and how files are organized. You will then be able to answer questions related to this repo, refering to specific files if helpful."
         file_prompt = f"Consider the following file structure from the GitHub repository:\n{self.file_struct}"
         readme_prompt = "Consider this README.md file from the same GitHub repository:\n{self.readme}"
         
         history = [
             {"role": "system", "content": role_prompt},
             {"role": "user", "content": file_prompt},
-            {"role": "assistant", "content": "I understand this file structure and will remember it."},
+            {"role": "assistant", "content": "I understand this file structure and will remember it. I will use this to answer questions and reference specific files."},
             {"role": "user", "content": readme_prompt},
-            {"role": "assistant", "content": "I understand this README.md file and will remember it."},
+            {"role": "assistant", "content": "I understand this README.md file and will remember it. I have the contents of the README and can use it to understand and explain the repo."},
         ]
         return history
 
@@ -53,6 +53,6 @@ class ChatRover():
 
     # TODO: replace with RAG
     def _trim_to_context(self, item, length=30000):
-        if item > length:
+        if len(item) > length:
             return item[:length]
         return item
