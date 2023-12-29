@@ -1,5 +1,5 @@
 from chat_rover import ChatRover
-import app as st
+import streamlit as st
 from github_scraper import GitHubScraper
 
 
