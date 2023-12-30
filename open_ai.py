@@ -6,13 +6,14 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 
+from langchain.chains.conversation.memory import ConversationSummaryBufferMemory
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter  import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-# from langchain.llms import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-# from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import ConversationalRetrievalChain
 from langchain.schema.document import Document
 import tiktoken
 # load env
@@ -38,7 +39,16 @@ class ChatAi():
         self.conversation_history = []
 
         # self.llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo")
-        # self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+        # # self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, llm=self.llm)
+        # self.memory = ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True)
+
+        # self.conversation_chain = ConversationalRetrievalChain.from_llm(
+        #     llm=self.llm,
+        #     chain_type="stuff",
+        #     retriever=self.file_vector.as_retriever(),
+        #     max_tokens_limit=2000,
+        #     memory=self.memory
+        # )
 
 
     def create_vector_store(self, data):
@@ -84,24 +94,36 @@ class ChatAi():
         return readme_prompt + " and " + file_prompt + "\n" + query
     
 
-    def trim(self, text, max_size = 3000):
+    # def trim(self, text, max_size = 4000):
+    #     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    #     token_count = len(encoding.encode(text))
+    #     if token_count > max_size:
+    #         tokens = text.split()[:max_size]
+    #         text = " ".join(tokens)
+    #     return text
+
+    def trim(self, text, max_size=6000):
         encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-        token_count = len(encoding.encode(text))
-        if token_count > max_size:
-            tokens = text.split()[:max_size]
-            text = " ".join(tokens)
+        tokens = encoding.encode(text)
+        
+        if len(tokens) > max_size:
+            trimmed_tokens = tokens[:max_size]
+            text = encoding.decode(trimmed_tokens)
+
         return text
 
 
     def run_chat(self, user_input):
+        self.conversation_history = []
 
         enhanced_input = self.retrieve_context(user_input)
+        # print(enhanced_input)
         self.conversation_history.append({"role": "user", "content": enhanced_input})
 
         stream = self.client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
             messages=self.conversation_history,
-            stream=True,
+            stream=True
         )
 
         response = ""
@@ -109,5 +131,44 @@ class ChatAi():
             if chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
 
+        # clear history to avoid overfilling window
+        
         self.conversation_history.append({"role": "assistant", "content": response})
         return response
+    
+
+    # def run_chat(self, user_input):
+    #     # Retrieve dynamic context based on the current query
+    #     enhanced_input = self.retrieve_context(user_input)
+    #     # Add user input to memory
+    #     self.memory.add_message({"role": "user", "content": enhanced_input})
+
+    #     # Get a condensed history from the memory
+    #     condensed_history = self.memory.get_condensed_history()
+        
+    #     # Make the API call with the condensed history
+    #     stream = self.client.chat.completions.create(
+    #         model="gpt-3.5-turbo-1106",
+    #         messages=condensed_history,
+    #         stream=True,
+    #         max_tokens_limit=3000
+    #     )
+
+    #     response = ""
+    #     for chunk in stream:
+    #         if chunk.choices[0].delta.content is not None:
+    #             response += chunk.choices[0].delta.content
+
+    #     # Add the response to memory
+    #     self.memory.add_message({"role": "assistant", "content": response})
+
+    #     return response
+
+    # def run_chat(self, user_input):
+    #     # Retrieve dynamic context based on the current query
+    #     enhanced_input = self.retrieve_context(user_input)
+
+    #     result = self.conversation_chain({"question": user_input})
+
+    #     answer = result["answer"]
+    #     return answer
