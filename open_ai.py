@@ -11,10 +11,10 @@ from langchain.text_splitter  import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 # from langchain.llms import ChatOpenAI
-# from langchain.memories import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory
 # from langchain.chains import ConversationalRetrievalChain
 from langchain.schema.document import Document
-
+import tiktoken
 # load env
 load_dotenv()
 
@@ -36,6 +36,9 @@ class ChatAi():
         # provide scraped info to our model
         # self.conversation_history = self.initialize_history()
         self.conversation_history = []
+
+        # self.llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo")
+        # self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 
 
     def create_vector_store(self, data):
@@ -72,15 +75,23 @@ class ChatAi():
     def retrieve_context(self, query):
 
         # truncate these responses: todo
-        readme_response = self.readme_vector.similarity_search(query)[0].page_content
-        file_response = self.file_vector.similarity_search(query)[0].page_content
+        readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
+        file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
         file_prompt = "Consider the following files from the " + self.repo + " GitHub repository: " + file_response
         readme_prompt = "Consider this part of the README.md file from the same GitHub repository: " + readme_response
 
         return readme_prompt + " and " + file_prompt + "\n" + query
+    
 
-       
+    def trim(self, text, max_size = 3000):
+        encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+        token_count = len(encoding.encode(text))
+        if token_count > max_size:
+            tokens = text.split()[:max_size]
+            text = " ".join(tokens)
+        return text
+
 
     def run_chat(self, user_input):
 
