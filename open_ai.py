@@ -2,18 +2,18 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
+# from sentence_transformers import SentenceTransformer
+# import faiss
+# import numpy as np
 
-from langchain.chains.conversation.memory import ConversationSummaryBufferMemory
-from langchain.document_loaders import TextLoader
+# from langchain.chains.conversation.memory import ConversationSummaryBufferMemory
+# from langchain.document_loaders import TextLoader
 from langchain.text_splitter  import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
+# from langchain.chat_models import ChatOpenAI
+# from langchain.memory import ConversationBufferMemory
+# from langchain.chains import ConversationalRetrievalChain
 from langchain.schema.document import Document
 import tiktoken
 # load env
@@ -38,10 +38,10 @@ class ChatAi():
         # self.conversation_history = self.initialize_history()
         self.conversation_history = []
 
+        # other RAG impl strategies:
         # self.llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo")
         # # self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, llm=self.llm)
         # self.memory = ConversationSummaryBufferMemory(memory_key='chat_history', return_messages=True)
-
         # self.conversation_chain = ConversationalRetrievalChain.from_llm(
         #     llm=self.llm,
         #     chain_type="stuff",
@@ -82,9 +82,8 @@ class ChatAi():
     #     return history
     
 
+    # get relevant and trimmed input for model
     def retrieve_context(self, query):
-
-        # truncate these responses: todo
         readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
@@ -94,14 +93,7 @@ class ChatAi():
         return readme_prompt + " and " + file_prompt + "\n" + query
     
 
-    # def trim(self, text, max_size = 4000):
-    #     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-    #     token_count = len(encoding.encode(text))
-    #     if token_count > max_size:
-    #         tokens = text.split()[:max_size]
-    #         text = " ".join(tokens)
-    #     return text
-
+    # trim number of tokens to obey window size
     def trim(self, text, max_size=6000):
         encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
         tokens = encoding.encode(text)
@@ -114,6 +106,7 @@ class ChatAi():
 
 
     def run_chat(self, user_input):
+        # clear history to avoid overfilling window
         self.conversation_history = []
 
         enhanced_input = self.retrieve_context(user_input)
@@ -131,11 +124,12 @@ class ChatAi():
             if chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
 
-        # clear history to avoid overfilling window
-        
         self.conversation_history.append({"role": "assistant", "content": response})
         return response
     
+
+    # Other RAG implementation attempts:
+
 
     # def run_chat(self, user_input):
     #     # Retrieve dynamic context based on the current query
