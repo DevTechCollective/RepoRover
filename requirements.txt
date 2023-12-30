@@ -1,4 +1,4 @@
-python-aiconfig
+# python-aiconfig
 streamlit
 altair==4
 openai
