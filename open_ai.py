@@ -16,9 +16,11 @@ class ChatAi():
     def __init__(self, file_structure, readme_file, repo_name):
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
+        self.model = "gpt-3.5-turbo-1106"
+        self.max_tokens = 16000
 
-        self.file_struct = file_structure
-        self.readme = readme_file
+        # self.file_struct = file_structure
+        # self.readme = readme_file
         self.repo = repo_name
 
         # create vector stores
@@ -26,8 +28,8 @@ class ChatAi():
         self.file_vector = self.create_vector_store(file_structure)
 
         self.conversation_history = []
-        self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-        self.max_tokens = 16000
+        self.encoding = tiktoken.encoding_for_model(self.model)
+
 
 
     def create_vector_store(self, data):
@@ -37,7 +39,6 @@ class ChatAi():
 
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=x) for x in text_splitter.split_text(data)]
-
 
         # Creating the Vector Store
         embeddings = OpenAIEmbeddings()
@@ -50,9 +51,9 @@ class ChatAi():
         readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
-        file_prompt = "Consider the following files from the " + self.repo + " GitHub repository: " + file_response
         readme_prompt = "Consider this part of the README.md file from the " + self.repo + " GitHub repository: " + readme_response
-
+        file_prompt = "Consider the following files from the " + self.repo + " GitHub repository: " + file_response
+        
         return readme_prompt + " and " + file_prompt + "\n" + query
     
 
@@ -86,7 +87,7 @@ class ChatAi():
         self.update_history("user", enhanced_input)
 
         stream = self.client.chat.completions.create(
-            model="gpt-3.5-turbo-1106",
+            model=self.model,
             messages=self.conversation_history,
             stream=True
         )
