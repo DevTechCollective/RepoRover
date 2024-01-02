@@ -50,8 +50,6 @@ class ChatRover():
         readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
-        print(file_response)
-
         readme_prompt = "Consider this part of the README.md file from the " + self.repo + " GitHub repository: " + readme_response
         file_prompt = "Consider this comma seperated file structure from the " + self.repo + " GitHub repository: " + file_response
         

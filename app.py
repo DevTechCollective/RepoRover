@@ -10,7 +10,6 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 # Updates rover based on URL
 def update_url(url):
     scraper = GitHubScraper(url)
-    
     st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
 
 
