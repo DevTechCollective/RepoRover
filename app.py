@@ -1,55 +1,55 @@
-from dotenv import load_dotenv
-import github_scraper
-import os
-from open_ai import ChatAi
-
-load_dotenv()
+from chat_rover import ChatRover
+import streamlit as st
+from github_scraper import GitHubScraper
 
 
-class RunQuery(object):
-    """
-    This is a class that runs a query.
-    """
-    def __init__(self):
-        # self.param = ""
-        self.readme = "hello readme"
-        self.file_struct = "hell this is the file struct"
-        self.repo_name ="testnamemax"
+AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
+USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
 
-        # if os.path.exists("file_structure.txt") and os.path.getsize("file_structure.txt") != 0:
-        #     with open("file_structure.txt", "r") as file:
-        #         self.file_struct = file.read()
 
-        # if os.path.exists("readme.txt") and os.path.getsize("readme.txt") != 0:
-        #     with open("readme.txt", "r") as file:
-        #         self.readme = file.read()
+# Updates rover based on URL
+def update_url(url):
+    scraper = GitHubScraper(url)
+    st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
 
-        self.chatBot = ChatAi(self.file_struct, self.readme, self.repo_name)
-        
 
-    async def get_query(self, input):
-        """
-        Get output for a given user_input
-        """
-        return self.chatBot.run_chat(input)
-    
-        
-    async def update_url(self, url):
-        """
-        Update object vairables with new url
-        """
+# Get the Rover if it exists
+chat_rover = st.session_state.chat_rover if 'chat_rover' in st.session_state else None
 
-        self.readme, self.file_struct = github_scraper.get_return(url)
+# Title for the app
+st.title("RepoRover")
 
-        # with open("file_structure.txt", "w") as file:
-        #     file_structure_str = str(self.file_struct)
-        #     file.write(file_structure_str)
+# Input box
+repo_url = st.text_input("Enter a Repo URL")
 
-        # with open("readme.txt", "w") as file:
-        #     readme_str = str(self.readme)
-        #     file.write(readme_str)
+# Button
+if st.button("Learn the Repo"):
+    if repo_url:
+        st.info("Processing... Please wait.")
+        update_url(repo_url)
+        st.session_state.messages = []
+        st.success("Done!")
+    else:
+        st.write("Please enter a URL")
 
-        owner, repo = github_scraper.get_github_repo_info(url)
-        self.repo_name = repo
+# generate chat interface
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-        self.chatBot = ChatAi(self.file_struct, self.readme, self.repo_name)
+for message in st.session_state.messages:
+    avatar = AVATAR_IMAGE if message['role'] == 'assistant' else USER_IMAGE
+    with st.chat_message(message["role"], avatar=avatar):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Ask me anything about this repo"):
+    st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    chat_response = chat_rover.run_chat(prompt)
+
+    response = f"AI: {chat_response}"
+
+    with st.chat_message("assistant", avatar=AVATAR_IMAGE):
+        st.markdown(response)
+
+    st.session_state.messages.append({"role": "assistant", "content": response})

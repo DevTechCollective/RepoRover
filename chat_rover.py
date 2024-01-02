@@ -11,7 +11,7 @@ import tiktoken
 # load env
 load_dotenv()
 
-class ChatAi():
+class ChatRover():
 
     def __init__(self, file_structure, readme_file, repo_name):
         api_key = os.getenv('OPENAI_API_KEY')
