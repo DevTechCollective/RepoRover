@@ -19,13 +19,11 @@ class ChatAi():
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
 
-        # self.file_struct = file_structure
-        # self.readme = readme_file
-        self.repo = repo_name
-
         # create vector stores
         self.readme_vector = self.create_vector_store(readme_file)
         self.file_vector = self.create_vector_store(file_structure)
+
+        self.repo = repo_name
 
         self.conversation_history = []
         self.encoding = tiktoken.encoding_for_model(self.model)
@@ -33,7 +31,6 @@ class ChatAi():
 
 
     def create_vector_store(self, data):
-        # to deal with later
         if not data:
             return
 
