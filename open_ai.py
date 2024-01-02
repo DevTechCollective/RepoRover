@@ -58,10 +58,11 @@ class ChatAi():
     
 
     # trim number of tokens to obey window size
-    def trim(self, text, max_tokens=6000):
+    def trim(self, text):
+        max_prompt_tokens = self.max_tokens // 3
         tokens = self.encoding.encode(text)
-        if len(tokens) > max_tokens:
-            trimmed_tokens = tokens[:max_tokens]
+        if len(tokens) > max_prompt_tokens:
+            trimmed_tokens = tokens[:max_prompt_tokens]
             text = self.encoding.decode(trimmed_tokens)
         return text
     
