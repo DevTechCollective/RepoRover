@@ -11,7 +11,6 @@ import tiktoken
 # load env
 load_dotenv()
 
-
 class ChatAi():
 
     def __init__(self, file_structure, readme_file, repo_name):
@@ -44,20 +43,6 @@ class ChatAi():
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         return vectorstore
 
-    # def initialize_history(self):
-    #     file_prompt = "Consider the following file structure from the " + self.repo + " GitHub repository: " + self.file_struct
-    #     readme_prompt = "Consider this README.md file from the same GitHub repository: " + self.readme
-    #     role_prompt = "You are an expert on this repo and will answer any questions I may have about the " + self.repo + " repository."
-
-    #     history = [
-    #         {"role": "user", "content": file_prompt},
-    #         {"role": "assistant", "content": "I understand this file structure and will remember it."},
-    #         {"role": "user", "content": readme_prompt},
-    #         {"role": "assistant", "content": "I understand this README.md file and will remember it."},
-    #         {"role": "user", "content": role_prompt}
-    #     ]
-    #     return history
-    
 
     # get relevant and trimmed input for model
     def retrieve_context(self, query):
