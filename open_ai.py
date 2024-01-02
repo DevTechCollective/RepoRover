@@ -38,6 +38,7 @@ class ChatAi():
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=x) for x in text_splitter.split_text(data)]
 
+
         # Creating the Vector Store
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
