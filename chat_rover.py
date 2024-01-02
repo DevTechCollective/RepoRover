@@ -16,13 +16,13 @@ class ChatRover():
     def __init__(self, file_structure, readme_file, repo_name):
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
+
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
 
-        file_structure = ','.join(file_structure)
-
         # create vector stores
         self.readme_vector = self.create_vector_store(readme_file)
+        file_structure = ','.join(file_structure) # type conversion
         self.file_vector = self.create_vector_store(file_structure)
 
         self.repo = repo_name
@@ -31,7 +31,7 @@ class ChatRover():
         self.encoding = tiktoken.encoding_for_model(self.model)
 
 
-
+    # return Faiss object (vector) for given data
     def create_vector_store(self, data):
         if not data:
             return
@@ -70,6 +70,7 @@ class ChatRover():
         return len(self.encoding.encode(text))
 
 
+    # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
         self.conversation_history.append({"role": role, "content": content})
 
@@ -82,6 +83,7 @@ class ChatRover():
             total_tokens -= self.token_count(removed_entry['content'])
 
 
+    # interact with the LLM and keep history updated
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
         self.update_history("user", enhanced_input)
