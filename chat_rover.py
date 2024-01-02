@@ -105,7 +105,6 @@ class ChatRover():
 
     # Other RAG implementation attempts:
 
-
     # def run_chat(self, user_input):
     #     # Retrieve dynamic context based on the current query
     #     enhanced_input = self.retrieve_context(user_input)
