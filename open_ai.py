@@ -51,16 +51,14 @@ class ChatAi():
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
         file_prompt = "Consider the following files from the " + self.repo + " GitHub repository: " + file_response
-        readme_prompt = "Consider this part of the README.md file from the same GitHub repository: " + readme_response
+        readme_prompt = "Consider this part of the README.md file from the " + self.repo + " GitHub repository: " + readme_response
 
         return readme_prompt + " and " + file_prompt + "\n" + query
     
 
     # trim number of tokens to obey window size
     def trim(self, text, max_tokens=6000):
-        # encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
         tokens = self.encoding.encode(text)
-        # total_tokens = self.token_count(text)
         if len(tokens) > max_tokens:
             trimmed_tokens = tokens[:max_tokens]
             text = self.encoding.decode(trimmed_tokens)
@@ -84,14 +82,8 @@ class ChatAi():
 
 
     def run_chat(self, user_input):
-
         enhanced_input = self.retrieve_context(user_input)
-        
         self.update_history("user", enhanced_input)
-
-        # self.conversation_history.append({"role": "user", "content": enhanced_input})
-
-        # print(self.conversation_history)
 
         stream = self.client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
@@ -105,8 +97,6 @@ class ChatAi():
                 response += chunk.choices[0].delta.content
 
         self.update_history("assistant", response)
-        # self.conversation_history.append({"role": "assistant", "content": response})
-
         return response
     
 
