@@ -46,13 +46,15 @@ class ChatRover():
 
     # get relevant and trimmed input for model
     def retrieve_context(self, query):
+        role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a  question. Answer this question being precise and refering to specific files if helpful."
+
         readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
-        readme_prompt = "Consider this part of the README.md file from the " + self.repo + " GitHub repository: " + readme_response
-        file_prompt = "Consider this comma seperated file structure from the " + self.repo + " GitHub repository: " + file_response
+        readme_prompt = "README.md portion:\n" + readme_response
+        file_prompt = "Comma seperated file structure portion:\n" + file_response
 
-        return readme_prompt + " and " + file_prompt + "\n" + query
+        return f"{role_prompt}\n{readme_prompt}\n{file_prompt}\nUser Q: {query}"
 
     # trim number of tokens to obey window size
     def trim(self, text):
