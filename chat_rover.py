@@ -19,6 +19,8 @@ class ChatRover():
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
 
+        file_structure = ','.join(file_structure)
+
         # create vector stores
         self.readme_vector = self.create_vector_store(readme_file)
         self.file_vector = self.create_vector_store(file_structure)
@@ -48,8 +50,10 @@ class ChatRover():
         readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
         file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
+        print(file_response)
+
         readme_prompt = "Consider this part of the README.md file from the " + self.repo + " GitHub repository: " + readme_response
-        file_prompt = "Consider the following files from the " + self.repo + " GitHub repository: " + file_response
+        file_prompt = "Consider this comma seperated file structure from the " + self.repo + " GitHub repository: " + file_response
         
         return readme_prompt + " and " + file_prompt + "\n" + query
     
