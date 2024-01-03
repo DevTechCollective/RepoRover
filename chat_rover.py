@@ -41,7 +41,7 @@ class ChatRover():
             return
         
         print("Creating file vector...")
-        split_data = [Document(page_content=x) for x in files]
+        split_data = [Document(page_content=file) for file in files]
 
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
@@ -55,7 +55,7 @@ class ChatRover():
             return
 
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
-        split_data = [Document(page_content=x) for x in text_splitter.split_text(data)]
+        split_data = [Document(page_content=chunk) for chunk in text_splitter.split_text(data)]
 
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
