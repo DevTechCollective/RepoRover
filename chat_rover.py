@@ -22,16 +22,16 @@ class ChatRover():
         self.max_tokens = 16000
 
         # create vector stores
-        self.readme_vector = self.create_vector_store(readme_file)
+        self.readme_vector = self.create_readme_vector(readme_file)
         # file_structure = ','.join(file_structure)   # type conversion
-        self.file_vector = self.file_vector(file_structure)
+        self.file_vector = self.create_file_vector(file_structure)
 
         self.repo = repo_name
 
         self.conversation_history = []
         self.encoding = tiktoken.encoding_for_model(self.model)
 
-    def file_vector(self, files):
+    def create_file_vector(self, files):
 
         if not files:
             return
@@ -47,7 +47,7 @@ class ChatRover():
 
 
     # return Faiss object (vector) for given data
-    def create_vector_store(self, data):
+    def create_readme_vector(self, data):
         if not data:
             return
 
