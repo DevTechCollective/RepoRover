@@ -18,7 +18,7 @@ class ChatRover():
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
 
-        # constants
+        # Constants
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
         self.readme_top_k = 5
@@ -34,6 +34,7 @@ class ChatRover():
         self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
+    # Returns vector store where each entry is a single file path
     def create_file_vector(self, files):
         if not files:
             return
@@ -41,14 +42,13 @@ class ChatRover():
         print("Creating file vector...")
         split_data = [Document(page_content=x) for x in files]
 
-        # Creating the Vector Store
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("File vector complete!")
         return vectorstore
 
 
-    # return Faiss object (vector) for given data
+    # Returns vector store where each entry is a chunk of the Readme
     def create_readme_vector(self, data):
         if not data:
             return
@@ -56,12 +56,11 @@ class ChatRover():
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=x) for x in text_splitter.split_text(data)]
 
-        # Creating the Vector Store
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         return vectorstore
 
-    # get relevant and trimmed input for model
+    # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
         role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
 
@@ -85,7 +84,7 @@ class ChatRover():
 
         return f"{role_prompt}\n{readme_prompt}\n{file_prompt}\nUser Q: {query}"
 
-    # trim number of tokens to obey window size
+    # Trim text by number of tokens to obey context window size
     def trim(self, text):
         max_prompt_tokens = self.max_tokens // 3
         tokens = self.encoding.encode(text)
@@ -109,7 +108,7 @@ class ChatRover():
             self.conversation_tokens -= self.token_count(removed_entry['content'])
 
 
-    # interact with the LLM and keep history updated
+    # interact with the LLM and update conversation history
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
         self.update_history("user", enhanced_input)
