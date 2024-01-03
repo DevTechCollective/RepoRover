@@ -75,7 +75,7 @@ class ChatRover():
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
 
-        return f"{role_prompt}\n{readme_prompt}\n{file_prompt}\nUser Q: {query}"
+        return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\nUser Q: {query}"
 
     # Trim text by number of tokens to obey context window size
     def trim(self, text):
