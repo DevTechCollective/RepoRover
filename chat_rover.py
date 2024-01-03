@@ -23,13 +23,28 @@ class ChatRover():
 
         # create vector stores
         self.readme_vector = self.create_vector_store(readme_file)
-        file_structure = ','.join(file_structure)   # type conversion
-        self.file_vector = self.create_vector_store(file_structure)
+        # file_structure = ','.join(file_structure)   # type conversion
+        self.file_vector = self.file_vector(file_structure)
 
         self.repo = repo_name
 
         self.conversation_history = []
         self.encoding = tiktoken.encoding_for_model(self.model)
+
+    def file_vector(self, files):
+
+        if not files:
+            return
+
+        # text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
+        split_data = [Document(page_content=x) for x in files]
+
+        # Creating the Vector Store
+        embeddings = OpenAIEmbeddings()
+        vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
+        print("DONE")
+        return vectorstore
+
 
     # return Faiss object (vector) for given data
     def create_vector_store(self, data):
@@ -48,8 +63,20 @@ class ChatRover():
     def retrieve_context(self, query):
         role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a  question. Answer this question being precise and refering to specific files if helpful."
 
-        readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
-        file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
+        # embeddings = OpenAIEmbeddings()  # Assuming this is the same embeddings used for the documents
+        # query_vector = embeddings.embed_query(query)
+
+        readme_query = self.readme_vector.similarity_search(query, 5)
+        file_query = self.file_vector.similarity_search(query, 10)
+
+        readme_string = "\n".join(doc.page_content for doc in readme_query)
+        file_string = ",".join(doc.page_content for doc in file_query)
+
+        readme_response = self.trim(readme_string)
+        file_response = self.trim(file_string)
+
+        # readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
+        # file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
