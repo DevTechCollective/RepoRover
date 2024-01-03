@@ -18,8 +18,11 @@ class ChatRover():
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
 
+        # constants
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
+        self.readme_top_k = 5
+        self.file_top_k = 10
 
         # create vector stores
         self.readme_vector = self.create_readme_vector(readme_file)
@@ -65,8 +68,8 @@ class ChatRover():
         # embeddings = OpenAIEmbeddings()  # Assuming this is the same embeddings used for the documents
         # query_vector = embeddings.embed_query(query)
 
-        readme_query = self.readme_vector.similarity_search(query, 5)
-        file_query = self.file_vector.similarity_search(query, 10)
+        readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
+        file_query = self.file_vector.similarity_search(query, self.file_top_k)
 
         readme_string = "\n".join(doc.page_content for doc in readme_query)
         file_string = ",".join(doc.page_content for doc in file_query)
@@ -91,6 +94,7 @@ class ChatRover():
             text = self.encoding.decode(trimmed_tokens)
         return text
 
+
     def token_count(self, text):
         return len(self.encoding.encode(text))
 
@@ -108,7 +112,6 @@ class ChatRover():
     # interact with the LLM and keep history updated
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
-        # print(enhanced_input)
         self.update_history("user", enhanced_input)
 
         stream = self.client.chat.completions.create(
