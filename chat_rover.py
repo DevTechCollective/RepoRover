@@ -32,17 +32,16 @@ class ChatRover():
         self.encoding = tiktoken.encoding_for_model(self.model)
 
     def create_file_vector(self, files):
-
         if not files:
             return
-
-        # text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
+        
+        print("Creating file vector...")
         split_data = [Document(page_content=x) for x in files]
 
         # Creating the Vector Store
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
-        print("DONE")
+        print("File vector complete!")
         return vectorstore
 
 
