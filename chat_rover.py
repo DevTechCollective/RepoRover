@@ -94,18 +94,6 @@ class ChatRover():
     def token_count(self, text):
         return len(self.encoding.encode(text))
 
-    # # add conversation to history and keep history size below maxtokens
-    # def update_history(self, role, content):
-    #     self.conversation_history.append({"role": role, "content": content})
-
-    #     total_tokens = 0
-    #     for entry in self.conversation_history:
-    #         total_tokens += self.token_count(entry['content'])
-
-    #     while total_tokens > self.max_tokens and self.conversation_history:
-    #         removed_entry = self.conversation_history.pop(0)
-    #         total_tokens -= self.token_count(removed_entry['content'])
-
 
     # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
