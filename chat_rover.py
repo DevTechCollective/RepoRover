@@ -27,8 +27,8 @@ class ChatRover():
         self.file_vector = self.create_file_vector(file_structure)
 
         self.repo = repo_name
-
         self.conversation_history = []
+        self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
     def create_file_vector(self, files):
@@ -61,7 +61,7 @@ class ChatRover():
 
     # get relevant and trimmed input for model
     def retrieve_context(self, query):
-        role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a  question. Answer this question being precise and refering to specific files if helpful."
+        role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
 
         # embeddings = OpenAIEmbeddings()  # Assuming this is the same embeddings used for the documents
         # query_vector = embeddings.embed_query(query)
@@ -95,21 +95,33 @@ class ChatRover():
     def token_count(self, text):
         return len(self.encoding.encode(text))
 
+    # # add conversation to history and keep history size below maxtokens
+    # def update_history(self, role, content):
+    #     self.conversation_history.append({"role": role, "content": content})
+
+    #     total_tokens = 0
+    #     for entry in self.conversation_history:
+    #         total_tokens += self.token_count(entry['content'])
+
+    #     while total_tokens > self.max_tokens and self.conversation_history:
+    #         removed_entry = self.conversation_history.pop(0)
+    #         total_tokens -= self.token_count(removed_entry['content'])
+
+
     # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
         self.conversation_history.append({"role": role, "content": content})
+        self.conversation_tokens += self.token_count(content)
 
-        total_tokens = 0
-        for entry in self.conversation_history:
-            total_tokens += self.token_count(entry['content'])
-
-        while total_tokens > self.max_tokens and self.conversation_history:
+        while self.conversation_tokens > self.max_tokens and self.conversation_history:
             removed_entry = self.conversation_history.pop(0)
-            total_tokens -= self.token_count(removed_entry['content'])
+            self.conversation_tokens -= self.token_count(removed_entry['content'])
+
 
     # interact with the LLM and keep history updated
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
+        # print(enhanced_input)
         self.update_history("user", enhanced_input)
 
         stream = self.client.chat.completions.create(
