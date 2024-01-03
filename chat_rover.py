@@ -21,6 +21,7 @@ class ChatRover():
         # Constants
         self.model = "gpt-3.5-turbo-1106"
         self.max_tokens = 16000
+        self.trim_token_limit = self.max_tokens // 3
         self.readme_top_k = 5
         self.file_top_k = 10
 
@@ -64,7 +65,7 @@ class ChatRover():
     def retrieve_context(self, query):
         role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
 
-        # embeddings = OpenAIEmbeddings()  # Assuming this is the same embeddings used for the documents
+        # embeddings = OpenAIEmbeddings()
         # query_vector = embeddings.embed_query(query)
 
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
@@ -86,10 +87,9 @@ class ChatRover():
 
     # Trim text by number of tokens to obey context window size
     def trim(self, text):
-        max_prompt_tokens = self.max_tokens // 3
         tokens = self.encoding.encode(text)
-        if len(tokens) > max_prompt_tokens:
-            trimmed_tokens = tokens[:max_prompt_tokens]
+        if len(tokens) > self.trim_token_limit:
+            trimmed_tokens = tokens[:self.trim_token_limit]
             text = self.encoding.decode(trimmed_tokens)
         return text
 
