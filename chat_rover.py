@@ -14,9 +14,11 @@ load_dotenv()
 
 class ChatRover():
 
-    def __init__(self, file_structure, readme_file, repo_name):
+    def __init__(self, gitHubScraper):
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
+
+        self.gitHubScraper = gitHubScraper
 
         # Constants
         self.model = "gpt-3.5-turbo-1106"
@@ -26,16 +28,17 @@ class ChatRover():
         self.file_top_k = 10
 
         # create vector stores
-        self.readme_vector = self.create_readme_vector(readme_file)
-        self.file_vector = self.create_file_vector(file_structure)
+        self.readme_vector = self.create_readme_vector()
+        self.file_vector = self.create_file_vector()
 
-        self.repo = repo_name
+        self.repo = self.gitHubScraper.repo
         self.conversation_history = []
         self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
     # Returns vector store where each entry is a single file path
-    def create_file_vector(self, files):
+    def create_file_vector(self):
+        files = self.gitHubScraper.file_paths
         if not files:
             return
 
@@ -48,7 +51,8 @@ class ChatRover():
         return vectorstore
 
     # Returns vector store where each entry is a chunk of the Readme
-    def create_readme_vector(self, data):
+    def create_readme_vector(self):
+        data = self.gitHubScraper.root_readme
         if not data:
             return
 

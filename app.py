@@ -9,9 +9,11 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 
 # Updates rover based on URL
 def update_url(url):
-    scraper = GitHubScraper(url)
-    st.session_state.sub_title = scraper.repo
-    st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
+    gitHubScraper = GitHubScraper(url)
+    st.session_state.sub_title = gitHubScraper.repo
+    # st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
+    st.session_state.chat_rover = ChatRover(gitHubScraper)
+
 
 
 # Get the Rover if it exists
@@ -20,7 +22,8 @@ sub_title = st.session_state.sub_title if 'sub_title' in st.session_state else "
 
 # Title for the app
 st.title("RepoRover")
-st.subheader(sub_title)
+# st.markdown("<h3 style='text-align: center; color: green;'>'{}'</h1>".format(sub_title), unsafe_allow_html=True)
+
 
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
@@ -34,6 +37,8 @@ if st.button("Learn the Repo"):
         st.success("Done!")
     else:
         st.write("Please enter a URL")
+
+# st.markdown("<h3 style='text-align: center; color: orange;'> Roving: '{}'</h1>".format(sub_title), unsafe_allow_html=True)
 
 # generate chat interface
 if "messages" not in st.session_state:
