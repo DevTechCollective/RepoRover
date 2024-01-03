@@ -10,14 +10,17 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 # Updates rover based on URL
 def update_url(url):
     scraper = GitHubScraper(url)
+    st.session_state.sub_title = scraper.repo
     st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
 
 
 # Get the Rover if it exists
 chat_rover = st.session_state.chat_rover if 'chat_rover' in st.session_state else None
+sub_title = st.session_state.sub_title if 'sub_title' in st.session_state else ""
 
 # Title for the app
 st.title("RepoRover")
+st.subheader(sub_title)
 
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
