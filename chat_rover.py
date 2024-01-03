@@ -27,7 +27,6 @@ class ChatRover():
 
         # create vector stores
         self.readme_vector = self.create_readme_vector(readme_file)
-        # file_structure = ','.join(file_structure)   # type conversion
         self.file_vector = self.create_file_vector(file_structure)
 
         self.repo = repo_name
@@ -39,7 +38,7 @@ class ChatRover():
     def create_file_vector(self, files):
         if not files:
             return
-        
+
         print("Creating file vector...")
         split_data = [Document(page_content=x) for x in files]
 
@@ -47,7 +46,6 @@ class ChatRover():
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("File vector complete!")
         return vectorstore
-
 
     # Returns vector store where each entry is a chunk of the Readme
     def create_readme_vector(self, data):
@@ -65,9 +63,6 @@ class ChatRover():
     def retrieve_context(self, query):
         role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
 
-        # embeddings = OpenAIEmbeddings()
-        # query_vector = embeddings.embed_query(query)
-
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
         file_query = self.file_vector.similarity_search(query, self.file_top_k)
 
@@ -76,9 +71,6 @@ class ChatRover():
 
         readme_response = self.trim(readme_string)
         file_response = self.trim(file_string)
-
-        # readme_response = self.trim(self.readme_vector.similarity_search(query)[0].page_content)
-        # file_response = self.trim(self.file_vector.similarity_search(query)[0].page_content)
 
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
@@ -93,10 +85,8 @@ class ChatRover():
             text = self.encoding.decode(trimmed_tokens)
         return text
 
-
     def token_count(self, text):
         return len(self.encoding.encode(text))
-
 
     # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
@@ -106,7 +96,6 @@ class ChatRover():
         while self.conversation_tokens > self.max_tokens and self.conversation_history:
             removed_entry = self.conversation_history.pop(0)
             self.conversation_tokens -= self.token_count(removed_entry['content'])
-
 
     # interact with the LLM and update conversation history
     def run_chat(self, user_input):
