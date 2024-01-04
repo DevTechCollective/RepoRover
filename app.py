@@ -17,12 +17,11 @@ def update_url(url):
 
 # Get the Rover if it exists
 chat_rover = st.session_state.chat_rover if 'chat_rover' in st.session_state else None
-sub_title = st.session_state.sub_title if 'sub_title' in st.session_state else ""
+repo_name = st.session_state.sub_title if 'sub_title' in st.session_state else ""
+sub_title = f" ...Currently Exploring {repo_name}" if repo_name != "" else ""
 
 # Title for the app
-st.title("RepoRover")
-# st.markdown("<h3 style='text-align: center; color: green;'>'{}'</h1>".format(sub_title), unsafe_allow_html=True)
-
+st.title("RepoRover" + sub_title)
 
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
@@ -52,7 +51,8 @@ if prompt := st.chat_input("Ask me anything about this repo"):
     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    chat_response = chat_rover.run_chat(prompt)
+    with st.spinner(f"Travelling across {repo_name}..."):
+        chat_response = chat_rover.run_chat(prompt)
 
     response = f"AI: {chat_response}"
 
