@@ -34,7 +34,6 @@ if st.button("Learn the Repo"):
             update_url(repo_url)
             st.session_state.messages = []
         st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")
-        st.experimental_rerun()
     else:
         st.write("Please enter a URL")
 
