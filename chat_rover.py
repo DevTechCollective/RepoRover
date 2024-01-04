@@ -7,7 +7,6 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.schema.document import Document
 import tiktoken
-import imghdr
 
 from langchain.chains.summarize import load_summarize_chain
 from langchain_community.chat_models import ChatOpenAI
@@ -134,28 +133,19 @@ class ChatRover():
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
-        role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
-
+        # role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
+        role_prompt = f"""
+            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository.
+            Your expertise includes detailed knowledge of the repository's structure, 
+            critical portions of the README, and summaries of key files based on user queries.
+            You do not have to use the summaries of files if they are not relavant. If they are relavent, feel free
+            to copy them verbatum or you may choose to extract parts of them to best answer the user.
+            Below is the relevant file structure, selected README excerpts, and summaries of important files.
+            Using this information, please provide precise answers to the following question, referencing specific files or sections when useful.
+            """
+        
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
         file_query = self.file_vector.similarity_search(query, self.file_top_k)
-
-        top_k_files = 2
-        top_file_paths = []
-        i = 0 
-        while i < len(file_query) and i < top_k_files:
-            top_file_paths.append(file_query[i].page_content)
-            i+=1
-
-        for file_path in top_file_paths:
-            summ = self.code_summary(file_path)
-            print(summ)
-
-        # print("FILE 1 TOKENS: ", self.token_count(code_file1))
-        # code_summary = self.code_summary(top_file_paths)
-        # code_summary = self.code_summary(top_file_paths)
-        # print(code_summary)
-
-
 
         readme_string = "\n".join(doc.page_content for doc in readme_query)
         file_string = ",".join(doc.page_content for doc in file_query)
@@ -165,8 +155,18 @@ class ChatRover():
 
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
+        content_prompt = "Summary of contents for some of the files:\n"
 
-        return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\nUser Q: {query}"
+        top_k_files = 2
+        i = 0 
+        while i < len(file_query) and i < top_k_files:
+            file_path = file_query[i].page_content
+            summary = self.code_summary(file_path)
+            content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
+            i+=1
+
+        return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\n{content_prompt}\n\nUser Q: {query}"
+        # return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\nUser Q: {query}"
 
 
     # Trim text by number of tokens to obey context window size
@@ -195,6 +195,7 @@ class ChatRover():
     # interact with the LLM and update conversation history
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
+
         self.update_history("user", enhanced_input)
         print("TOKENS: ", self.conversation_tokens)
         stream = self.client.chat.completions.create(
