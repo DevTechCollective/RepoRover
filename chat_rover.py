@@ -75,49 +75,11 @@ class ChatRover():
     
 
     def is_not_image(self, file_path):
-        # List of common image file extensions
+        # common image file extensions
         image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
-        # Check if the file path ends with any of the image extensions
+        # Check if file path ends with any image extensions
         return not any(file_path.lower().endswith(ext) for ext in image_extensions)
 
-    
-    # def code_summary(self, file_path):
-    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-    #     chain = load_summarize_chain(llm, chain_type="stuff")
-    #     if self.is_not_image(file_path):
-    #         code = self.gitHubScraper.get_file_raw(file_path)
-    #         if code:
-    #             code = self.trim(code, self.max_tokens)
-    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
-    #             res = chain.run(doc)
-    #             return res
-    #     return "Code not found."
-
-    # def code_summary(self, file_path, query):
-
-
-    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-    #     # chain = load_summarize_chain(llm, chain_type="stuff")
-    #     custom_prompt = """
-    #     Provide a clear and concise summary on the code that you will be given.
-    #     You should reference specific parts of the code. Be technical. Your
-    #     summary will be used by another LLM to explain specific parts of the user query.
-    #     Focus on those parts that are most relevant to the user query.
-    #     Do not speak to or address the user.
-    #     Limit your response to 150 words.
-    #     """
-    #     custom_prompt += "User Query: " + query
-    #     prompt_template = PromptTemplate.from_template(custom_prompt)
-    #     llm_chain = LLMChain(llm=llm, prompt=prompt_template)
-
-    #     if self.is_not_image(file_path):
-    #         code = self.gitHubScraper.get_file_raw(file_path)
-    #         if code:
-    #             code = self.trim(code, self.max_tokens)
-    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
-    #             res = llm_chain.run(doc)
-    #             return res
-    #     return "Code not found."
     
     def code_summary(self, file_path, query):
         llm = ChatOpenAI(temperature=0.3, model_name=self.model)
@@ -141,47 +103,10 @@ class ChatRover():
                 res = llm_chain.run(input_dict)
                 return res
         return "Code not found."
-
-    # map reduce strategy
-    # def summarize_files(self, file_paths):
-
-    #     llm = ChatOpenAI(temperature=0)
-
-    #     # Map step: Define individual file summarization
-    #     map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
-    #     map_prompt = PromptTemplate.from_template(map_template)
-    #     map_chain = LLMChain(llm=llm, prompt=map_prompt)
-
-    #     # Reduce step: Define how to combine individual summaries
-    #     reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
-    #     reduce_prompt = PromptTemplate.from_template(reduce_template)
-    #     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
-
-    #     # Combine map and reduce chains
-    #     map_reduce_chain = MapReduceDocumentsChain(
-    #         llm_chain=map_chain,
-    #         reduce_documents_chain=ReduceDocumentsChain(
-    #             combine_documents_chain=StuffDocumentsChain(
-    #                 llm_chain=reduce_chain, document_variable_name="docs"),
-    #             collapse_documents_chain=StuffDocumentsChain(
-    #                 llm_chain=reduce_chain, document_variable_name="docs"),
-    #             token_max=4000),
-    #         document_variable_name="doc",
-    #         return_intermediate_steps=False)
-
-    #     docs = []
-    #     for file in file_paths:
-    #         if self.is_not_image(file):
-    #             code = self.gitHubScraper.get_file_raw(file)
-    #             if code:
-    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
-
-    #     return map_reduce_chain.run(docs)
-
+    
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
-        # role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
         role_prompt = f"""
             As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository.
             Your expertise includes detailed knowledge of the repository's structure, 
@@ -214,7 +139,6 @@ class ChatRover():
             i+=1
 
         return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\n{content_prompt}\n\nUser Q: {query}"
-        # return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\nUser Q: {query}"
 
 
     # Trim text by number of tokens to obey context window size
@@ -259,3 +183,83 @@ class ChatRover():
 
         self.update_history("assistant", response)
         return response
+    
+
+        # Other strategies explored:
+    
+        # def code_summary(self, file_path):
+    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
+    #     chain = load_summarize_chain(llm, chain_type="stuff")
+    #     if self.is_not_image(file_path):
+    #         code = self.gitHubScraper.get_file_raw(file_path)
+    #         if code:
+    #             code = self.trim(code, self.max_tokens)
+    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
+    #             res = chain.run(doc)
+    #             return res
+    #     return "Code not found."
+
+    # def code_summary(self, file_path, query):
+
+
+    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
+    #     # chain = load_summarize_chain(llm, chain_type="stuff")
+    #     custom_prompt = """
+    #     Provide a clear and concise summary on the code that you will be given.
+    #     You should reference specific parts of the code. Be technical. Your
+    #     summary will be used by another LLM to explain specific parts of the user query.
+    #     Focus on those parts that are most relevant to the user query.
+    #     Do not speak to or address the user.
+    #     Limit your response to 150 words.
+    #     """
+    #     custom_prompt += "User Query: " + query
+    #     prompt_template = PromptTemplate.from_template(custom_prompt)
+    #     llm_chain = LLMChain(llm=llm, prompt=prompt_template)
+
+    #     if self.is_not_image(file_path):
+    #         code = self.gitHubScraper.get_file_raw(file_path)
+    #         if code:
+    #             code = self.trim(code, self.max_tokens)
+    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
+    #             res = llm_chain.run(doc)
+    #             return res
+    #     return "Code not found."
+
+
+
+
+        # map reduce strategy
+    # def summarize_files(self, file_paths):
+
+    #     llm = ChatOpenAI(temperature=0)
+
+    #     # Map step: Define individual file summarization
+    #     map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
+    #     map_prompt = PromptTemplate.from_template(map_template)
+    #     map_chain = LLMChain(llm=llm, prompt=map_prompt)
+
+    #     # Reduce step: Define how to combine individual summaries
+    #     reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
+    #     reduce_prompt = PromptTemplate.from_template(reduce_template)
+    #     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
+
+    #     # Combine map and reduce chains
+    #     map_reduce_chain = MapReduceDocumentsChain(
+    #         llm_chain=map_chain,
+    #         reduce_documents_chain=ReduceDocumentsChain(
+    #             combine_documents_chain=StuffDocumentsChain(
+    #                 llm_chain=reduce_chain, document_variable_name="docs"),
+    #             collapse_documents_chain=StuffDocumentsChain(
+    #                 llm_chain=reduce_chain, document_variable_name="docs"),
+    #             token_max=4000),
+    #         document_variable_name="doc",
+    #         return_intermediate_steps=False)
+
+    #     docs = []
+    #     for file in file_paths:
+    #         if self.is_not_image(file):
+    #             code = self.gitHubScraper.get_file_raw(file)
+    #             if code:
+    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
+
+    #     return map_reduce_chain.run(docs)
