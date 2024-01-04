@@ -81,18 +81,67 @@ class ChatRover():
         return not any(file_path.lower().endswith(ext) for ext in image_extensions)
 
     
-    def code_summary(self, file_path):
+    # def code_summary(self, file_path):
+    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
+    #     chain = load_summarize_chain(llm, chain_type="stuff")
+    #     if self.is_not_image(file_path):
+    #         code = self.gitHubScraper.get_file_raw(file_path)
+    #         if code:
+    #             code = self.trim(code, self.max_tokens)
+    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
+    #             res = chain.run(doc)
+    #             return res
+    #     return "Code not found."
+
+    # def code_summary(self, file_path, query):
+
+
+    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
+    #     # chain = load_summarize_chain(llm, chain_type="stuff")
+    #     custom_prompt = """
+    #     Provide a clear and concise summary on the code that you will be given.
+    #     You should reference specific parts of the code. Be technical. Your
+    #     summary will be used by another LLM to explain specific parts of the user query.
+    #     Focus on those parts that are most relevant to the user query.
+    #     Do not speak to or address the user.
+    #     Limit your response to 150 words.
+    #     """
+    #     custom_prompt += "User Query: " + query
+    #     prompt_template = PromptTemplate.from_template(custom_prompt)
+    #     llm_chain = LLMChain(llm=llm, prompt=prompt_template)
+
+    #     if self.is_not_image(file_path):
+    #         code = self.gitHubScraper.get_file_raw(file_path)
+    #         if code:
+    #             code = self.trim(code, self.max_tokens)
+    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
+    #             res = llm_chain.run(doc)
+    #             return res
+    #     return "Code not found."
+    
+    def code_summary(self, file_path, query):
         llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-        chain = load_summarize_chain(llm, chain_type="stuff")
+        custom_prompt = """
+        Provide a clear and concise summary on the code that you will be given.
+        You should reference specific parts of the code. Be technical. Your
+        summary will be used by another LLM to explain specific parts of the user query.
+        Focus on those parts that are most relevant to the user query.
+        Do not speak to or address the user.
+        Limit your response to 150 words.
+        User Query: {query}
+        """
+        prompt_template = PromptTemplate.from_template(custom_prompt)
+        llm_chain = LLMChain(llm=llm, prompt=prompt_template)
+
         if self.is_not_image(file_path):
             code = self.gitHubScraper.get_file_raw(file_path)
             if code:
                 code = self.trim(code, self.max_tokens)
-                doc = [Document(page_content=code, metadata={"file_path": file_path})]
-                res = chain.run(doc)
+                # Prepare the input as a dictionary
+                input_dict = {'code': code, 'query': query}
+                res = llm_chain.run(input_dict)
                 return res
         return "Code not found."
-    
 
     # map reduce strategy
     def summarize_files(self, file_paths):
@@ -161,7 +210,7 @@ class ChatRover():
         i = 0 
         while i < len(file_query) and i < top_k_files:
             file_path = file_query[i].page_content
-            summary = self.code_summary(file_path)
+            summary = self.code_summary(file_path, query)
             content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
             i+=1
 
