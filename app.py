@@ -9,12 +9,16 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 
 # Updates rover based on URL
 def update_url(url):
-    scraper = GitHubScraper(url)
-    st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
+    gitHubScraper = GitHubScraper(url)
+    st.session_state.sub_title = gitHubScraper.repo
+    # st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
+    st.session_state.chat_rover = ChatRover(gitHubScraper)
 
 
 # Get the Rover if it exists
 chat_rover = st.session_state.chat_rover if 'chat_rover' in st.session_state else None
+repo_name = st.session_state.sub_title if 'sub_title' in st.session_state else ""
+sub_title = f" ...Currently Exploring {repo_name}" if repo_name != "" else ""
 
 # Title for the app
 st.title("RepoRover")
@@ -25,12 +29,16 @@ repo_url = st.text_input("Enter a Repo URL")
 # Button
 if st.button("Learn the Repo"):
     if repo_url:
-        st.info("Processing... Please wait.")
-        update_url(repo_url)
-        st.session_state.messages = []
-        st.success("Done!")
+        with st.spinner("Discovering new repo... Performing initial scans... Please wait."):
+            # st.info("Processing... Please wait.")
+            update_url(repo_url)
+            st.session_state.messages = []
+        st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")
     else:
         st.write("Please enter a URL")
+
+st.header(sub_title)
+# st.markdown("<h3 style='text-align: center; color: orange;'> Roving: '{}'</h1>".format(sub_title), unsafe_allow_html=True)
 
 # generate chat interface
 if "messages" not in st.session_state:
@@ -45,7 +53,8 @@ if prompt := st.chat_input("Ask me anything about this repo"):
     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    chat_response = chat_rover.run_chat(prompt)
+    with st.spinner(f"Travelling across {repo_name}..."):
+        chat_response = chat_rover.run_chat(prompt)
 
     response = f"AI: {chat_response}"
 

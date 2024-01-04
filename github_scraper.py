@@ -1,5 +1,9 @@
 import requests
 
+IGNORE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.svg', '.mp4', '.mp3',
+               '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.tar', '.gz', '.rar',
+               '.7z', '.exe', '.dll', '.jar', '.war', '.class']
+
 
 class GitHubScraper:
 
@@ -36,9 +40,13 @@ class GitHubScraper:
             files = []
             for file in data['tree']:
                 if file['type'] == 'blob':
-                    if file['path'].lower() == 'readme.md':
-                        self.root_readme = self.get_file_raw(file['path'])
-                    files.append(file['path'])
+                    file_name = file['path'].lower()
+                    file_extension = file_name.split('.')[-1]
+                    if file_extension not in IGNORE_EXTS:
+                        if file_name == 'readme.md':
+                            # must use correct casing to get file
+                            self.root_readme = self.get_file_raw(file['path'])  
+                        files.append(file['path'])
             if condese:
                 files = self._condense_file_structure(files)
             return files

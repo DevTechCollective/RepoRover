@@ -2,7 +2,7 @@
 
 ### Overview:
 A developer's "right hand man". This tool assists developers in understanding GitHub repositories and their structures.
-Built using config.ai and OpenAi.
+Built using LangChain and OpenAi.
 Simply run and enter the URL of any GitHub repo, then ask away!
 
 ### Install requirements:
