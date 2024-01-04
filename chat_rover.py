@@ -11,7 +11,7 @@ import tiktoken
 from langchain.chains.summarize import load_summarize_chain
 from langchain_community.chat_models import ChatOpenAI
 
-from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
+# from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import StuffDocumentsChain, LLMChain
@@ -137,47 +137,46 @@ class ChatRover():
             code = self.gitHubScraper.get_file_raw(file_path)
             if code:
                 code = self.trim(code, self.max_tokens)
-                # Prepare the input as a dictionary
                 input_dict = {'code': code, 'query': query}
                 res = llm_chain.run(input_dict)
                 return res
         return "Code not found."
 
     # map reduce strategy
-    def summarize_files(self, file_paths):
+    # def summarize_files(self, file_paths):
 
-        llm = ChatOpenAI(temperature=0)
+    #     llm = ChatOpenAI(temperature=0)
 
-        # Map step: Define individual file summarization
-        map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
-        map_prompt = PromptTemplate.from_template(map_template)
-        map_chain = LLMChain(llm=llm, prompt=map_prompt)
+    #     # Map step: Define individual file summarization
+    #     map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
+    #     map_prompt = PromptTemplate.from_template(map_template)
+    #     map_chain = LLMChain(llm=llm, prompt=map_prompt)
 
-        # Reduce step: Define how to combine individual summaries
-        reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
-        reduce_prompt = PromptTemplate.from_template(reduce_template)
-        reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
+    #     # Reduce step: Define how to combine individual summaries
+    #     reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
+    #     reduce_prompt = PromptTemplate.from_template(reduce_template)
+    #     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
 
-        # Combine map and reduce chains
-        map_reduce_chain = MapReduceDocumentsChain(
-            llm_chain=map_chain,
-            reduce_documents_chain=ReduceDocumentsChain(
-                combine_documents_chain=StuffDocumentsChain(
-                    llm_chain=reduce_chain, document_variable_name="docs"),
-                collapse_documents_chain=StuffDocumentsChain(
-                    llm_chain=reduce_chain, document_variable_name="docs"),
-                token_max=4000),
-            document_variable_name="doc",
-            return_intermediate_steps=False)
+    #     # Combine map and reduce chains
+    #     map_reduce_chain = MapReduceDocumentsChain(
+    #         llm_chain=map_chain,
+    #         reduce_documents_chain=ReduceDocumentsChain(
+    #             combine_documents_chain=StuffDocumentsChain(
+    #                 llm_chain=reduce_chain, document_variable_name="docs"),
+    #             collapse_documents_chain=StuffDocumentsChain(
+    #                 llm_chain=reduce_chain, document_variable_name="docs"),
+    #             token_max=4000),
+    #         document_variable_name="doc",
+    #         return_intermediate_steps=False)
 
-        docs = []
-        for file in file_paths:
-            if self.is_not_image(file):
-                code = self.gitHubScraper.get_file_raw(file)
-                if code:
-                    docs.append(Document(page_content=code, metadata={"file_path": file}))
+    #     docs = []
+    #     for file in file_paths:
+    #         if self.is_not_image(file):
+    #             code = self.gitHubScraper.get_file_raw(file)
+    #             if code:
+    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
 
-        return map_reduce_chain.run(docs)
+    #     return map_reduce_chain.run(docs)
 
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
