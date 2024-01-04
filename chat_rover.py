@@ -13,7 +13,6 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain_community.chat_models import ChatOpenAI
 
 from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-# from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import StuffDocumentsChain, LLMChain
@@ -22,6 +21,7 @@ load_dotenv()
 
 
 class ChatRover():
+
 
     def __init__(self, gitHubScraper):
         api_key = os.getenv('OPENAI_API_KEY')
@@ -45,6 +45,7 @@ class ChatRover():
         self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
+
     # Returns vector store where each entry is a single file path
     def create_file_vector(self):
         files = self.gitHubScraper.file_paths
@@ -58,6 +59,7 @@ class ChatRover():
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("File vector complete!")
         return vectorstore
+
 
     # Returns vector store where each entry is a chunk of the Readme
     def create_readme_vector(self):
@@ -73,49 +75,27 @@ class ChatRover():
         return vectorstore
     
 
-    # def is_not_image(self, file_path):
-    #     if imghdr.what(file_path) is None:
-    #         return True
-    #     return False
-
     def is_not_image(self, file_path):
         # List of common image file extensions
         image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
         # Check if the file path ends with any of the image extensions
         return not any(file_path.lower().endswith(ext) for ext in image_extensions)
 
-
-    # # given a list of file paths, get the code and provide a summary of the file
-    # def code_summary(self, file_paths):
-    #     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-1106")
-    #     chain = load_summarize_chain(llm, chain_type="map_reduce")
-    #     docs = []
-    #     for file in file_paths:
-    #         print("POTENTIAL: ", file)
-    #         if self.is_not_image(file):
-    #             code = self.gitHubScraper.get_file_raw(file)
-    #             if code:
-    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
-
-    #     res = "Code not found."
-    #     if docs:
-    #         res = chain.run(docs)
-    #     return res
-    
-        # given a list of file paths, get the code and provide a summary of the file
     
     def code_summary(self, file_path):
-        llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-1106")
+        llm = ChatOpenAI(temperature=0.3, model_name=self.model)
         chain = load_summarize_chain(llm, chain_type="stuff")
         if self.is_not_image(file_path):
             code = self.gitHubScraper.get_file_raw(file_path)
             if code:
+                code = self.trim(code, self.max_tokens)
                 doc = [Document(page_content=code, metadata={"file_path": file_path})]
                 res = chain.run(doc)
                 return res
         return "Code not found."
     
 
+    # map reduce strategy
     def summarize_files(self, file_paths):
 
         llm = ChatOpenAI(temperature=0)
@@ -151,6 +131,7 @@ class ChatRover():
 
         return map_reduce_chain.run(docs)
 
+
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
         role_prompt = f"You are an expert on the {self.repo} repository. Relevant portions of the file structure and README are below, allowing you to understand the repo and how files are organized. There is also a question. Answer this question being precise and refering to specific files if helpful."
@@ -179,24 +160,27 @@ class ChatRover():
         readme_string = "\n".join(doc.page_content for doc in readme_query)
         file_string = ",".join(doc.page_content for doc in file_query)
 
-        readme_response = self.trim(readme_string)
-        file_response = self.trim(file_string)
+        readme_response = self.trim(readme_string, self.trim_token_limit)
+        file_response = self.trim(file_string, self.trim_token_limit)
 
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
 
         return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\nUser Q: {query}"
 
+
     # Trim text by number of tokens to obey context window size
-    def trim(self, text):
+    def trim(self, text, token_limit):
         tokens = self.encoding.encode(text)
-        if len(tokens) > self.trim_token_limit:
-            trimmed_tokens = tokens[:self.trim_token_limit]
+        if len(tokens) > token_limit:
+            trimmed_tokens = tokens[:token_limit]
             text = self.encoding.decode(trimmed_tokens)
         return text
 
+
     def token_count(self, text):
         return len(self.encoding.encode(text))
+
 
     # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
@@ -206,6 +190,7 @@ class ChatRover():
         while self.conversation_tokens > self.max_tokens and self.conversation_history:
             removed_entry = self.conversation_history.pop(0)
             self.conversation_tokens -= self.token_count(removed_entry['content'])
+
 
     # interact with the LLM and update conversation history
     def run_chat(self, user_input):
