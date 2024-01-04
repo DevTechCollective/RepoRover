@@ -21,7 +21,7 @@ repo_name = st.session_state.sub_title if 'sub_title' in st.session_state else "
 sub_title = f" ...Currently Exploring {repo_name}" if repo_name != "" else ""
 
 # Title for the app
-st.title("RepoRover" + sub_title)
+st.title("RepoRover")
 
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
@@ -29,13 +29,16 @@ repo_url = st.text_input("Enter a Repo URL")
 # Button
 if st.button("Learn the Repo"):
     if repo_url:
-        st.info("Processing... Please wait.")
-        update_url(repo_url)
-        st.session_state.messages = []
-        st.success("Done!")
+        with st.spinner("Discovering new repo... Performing initial scans... Please wait."):
+            # st.info("Processing... Please wait.")
+            update_url(repo_url)
+            st.session_state.messages = []
+        st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")
+        st.experimental_rerun()
     else:
         st.write("Please enter a URL")
 
+st.header(sub_title)
 # st.markdown("<h3 style='text-align: center; color: orange;'> Roving: '{}'</h1>".format(sub_title), unsafe_allow_html=True)
 
 # generate chat interface
