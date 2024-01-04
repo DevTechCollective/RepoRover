@@ -21,7 +21,6 @@ load_dotenv()
 
 class ChatRover():
 
-
     def __init__(self, gitHubScraper):
         api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
@@ -44,7 +43,6 @@ class ChatRover():
         self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
-
     # Returns vector store where each entry is a single file path
     def create_file_vector(self):
         files = self.gitHubScraper.file_paths
@@ -59,7 +57,6 @@ class ChatRover():
         print("File vector complete!")
         return vectorstore
 
-
     # Returns vector store where each entry is a chunk of the Readme
     def create_readme_vector(self):
         data = self.gitHubScraper.root_readme
@@ -72,7 +69,6 @@ class ChatRover():
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         return vectorstore
-    
 
     def is_not_image(self, file_path):
         # common image file extensions
@@ -80,16 +76,12 @@ class ChatRover():
         # Check if file path ends with any image extensions
         return not any(file_path.lower().endswith(ext) for ext in image_extensions)
 
-    
     def code_summary(self, file_path, query):
         llm = ChatOpenAI(temperature=0.3, model_name=self.model)
         custom_prompt = """
-        Provide a clear and concise summary on the code that you will be given.
-        You should reference specific parts of the code. Be technical. Your
-        summary will be used by another LLM to explain specific parts of the user query.
-        Focus on those parts that are most relevant to the user query.
-        Do not speak to or address the user.
-        Limit your response to 150 words.
+        Provide a clear and concise summary on the code that you will be given. You should reference specific parts of the code. Be technical. Your summary will be used by another LLM to explain specific parts of the user query. Focus on those parts that are most relevant to the user query.
+        Do not speak to or address the user. Limit your response to 150 words.
+
         User Query: {query}
         """
         prompt_template = PromptTemplate.from_template(custom_prompt)
@@ -103,20 +95,13 @@ class ChatRover():
                 res = llm_chain.run(input_dict)
                 return res
         return "Code not found."
-    
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
         role_prompt = f"""
-            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository.
-            Your expertise includes detailed knowledge of the repository's structure, 
-            critical portions of the README, and summaries of key files based on user queries.
-            You do not have to use the summaries of files if they are not relavant. If they are relavent, feel free
-            to copy them verbatum or you may choose to extract parts of them to best answer the user.
-            Below is the relevant file structure, selected README excerpts, and summaries of important files.
-            Using this information, please provide precise answers to the following question, referencing specific files or sections when useful.
+            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. Your expertise includes detailed knowledge of the repository's structure, critical portions of the README, and summaries of key files based on user queries. You do not have to use the summaries of files if they are not relevant. If they are relevant, feel free to copy them verbatum or you may choose to extract parts of them to best answer the user. Below is the relevant file structure, selected README excerpts, and summaries of important files. Using this information, please provide precise answers to the following question, referencing specific files or sections when useful.
             """
-        
+
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
         file_query = self.file_vector.similarity_search(query, self.file_top_k)
 
@@ -131,15 +116,14 @@ class ChatRover():
         content_prompt = "Summary of contents for some of the files:\n"
 
         top_k_files = 2
-        i = 0 
+        i = 0
         while i < len(file_query) and i < top_k_files:
             file_path = file_query[i].page_content
             summary = self.code_summary(file_path, query)
             content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
-            i+=1
+            i += 1
 
         return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\n{content_prompt}\n\nUser Q: {query}"
-
 
     # Trim text by number of tokens to obey context window size
     def trim(self, text, token_limit):
@@ -149,20 +133,17 @@ class ChatRover():
             text = self.encoding.decode(trimmed_tokens)
         return text
 
-
     def token_count(self, text):
         return len(self.encoding.encode(text))
-
 
     # add conversation to history and keep history size below maxtokens
     def update_history(self, role, content):
         self.conversation_history.append({"role": role, "content": content})
         self.conversation_tokens += self.token_count(content)
-        
+
         while self.conversation_tokens > self.max_tokens and self.conversation_history:
             removed_entry = self.conversation_history.pop(0)
             self.conversation_tokens -= self.token_count(removed_entry['content'])
-
 
     # interact with the LLM and update conversation history
     def run_chat(self, user_input):
@@ -183,83 +164,3 @@ class ChatRover():
 
         self.update_history("assistant", response)
         return response
-    
-
-        # Other strategies explored:
-    
-        # def code_summary(self, file_path):
-    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-    #     chain = load_summarize_chain(llm, chain_type="stuff")
-    #     if self.is_not_image(file_path):
-    #         code = self.gitHubScraper.get_file_raw(file_path)
-    #         if code:
-    #             code = self.trim(code, self.max_tokens)
-    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
-    #             res = chain.run(doc)
-    #             return res
-    #     return "Code not found."
-
-    # def code_summary(self, file_path, query):
-
-
-    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-    #     # chain = load_summarize_chain(llm, chain_type="stuff")
-    #     custom_prompt = """
-    #     Provide a clear and concise summary on the code that you will be given.
-    #     You should reference specific parts of the code. Be technical. Your
-    #     summary will be used by another LLM to explain specific parts of the user query.
-    #     Focus on those parts that are most relevant to the user query.
-    #     Do not speak to or address the user.
-    #     Limit your response to 150 words.
-    #     """
-    #     custom_prompt += "User Query: " + query
-    #     prompt_template = PromptTemplate.from_template(custom_prompt)
-    #     llm_chain = LLMChain(llm=llm, prompt=prompt_template)
-
-    #     if self.is_not_image(file_path):
-    #         code = self.gitHubScraper.get_file_raw(file_path)
-    #         if code:
-    #             code = self.trim(code, self.max_tokens)
-    #             doc = [Document(page_content=code, metadata={"file_path": file_path})]
-    #             res = llm_chain.run(doc)
-    #             return res
-    #     return "Code not found."
-
-
-
-
-        # map reduce strategy
-    # def summarize_files(self, file_paths):
-
-    #     llm = ChatOpenAI(temperature=0)
-
-    #     # Map step: Define individual file summarization
-    #     map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
-    #     map_prompt = PromptTemplate.from_template(map_template)
-    #     map_chain = LLMChain(llm=llm, prompt=map_prompt)
-
-    #     # Reduce step: Define how to combine individual summaries
-    #     reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
-    #     reduce_prompt = PromptTemplate.from_template(reduce_template)
-    #     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
-
-    #     # Combine map and reduce chains
-    #     map_reduce_chain = MapReduceDocumentsChain(
-    #         llm_chain=map_chain,
-    #         reduce_documents_chain=ReduceDocumentsChain(
-    #             combine_documents_chain=StuffDocumentsChain(
-    #                 llm_chain=reduce_chain, document_variable_name="docs"),
-    #             collapse_documents_chain=StuffDocumentsChain(
-    #                 llm_chain=reduce_chain, document_variable_name="docs"),
-    #             token_max=4000),
-    #         document_variable_name="doc",
-    #         return_intermediate_steps=False)
-
-    #     docs = []
-    #     for file in file_paths:
-    #         if self.is_not_image(file):
-    #             code = self.gitHubScraper.get_file_raw(file)
-    #             if code:
-    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
-
-    #     return map_reduce_chain.run(docs)
