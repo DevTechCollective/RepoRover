@@ -73,28 +73,47 @@ class ChatRover():
         return vectorstore
     
 
+    # def is_not_image(self, file_path):
+    #     if imghdr.what(file_path) is None:
+    #         return True
+    #     return False
+
     def is_not_image(self, file_path):
-        if imghdr.what(file_path) is None:
-            return True
-        return False
+        # List of common image file extensions
+        image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
+        # Check if the file path ends with any of the image extensions
+        return not any(file_path.lower().endswith(ext) for ext in image_extensions)
 
 
-    # given a list of file paths, get the code and provide a summary of the file
-    def code_summary(self, file_paths):
+    # # given a list of file paths, get the code and provide a summary of the file
+    # def code_summary(self, file_paths):
+    #     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-1106")
+    #     chain = load_summarize_chain(llm, chain_type="map_reduce")
+    #     docs = []
+    #     for file in file_paths:
+    #         print("POTENTIAL: ", file)
+    #         if self.is_not_image(file):
+    #             code = self.gitHubScraper.get_file_raw(file)
+    #             if code:
+    #                 docs.append(Document(page_content=code, metadata={"file_path": file}))
+
+    #     res = "Code not found."
+    #     if docs:
+    #         res = chain.run(docs)
+    #     return res
+    
+        # given a list of file paths, get the code and provide a summary of the file
+    
+    def code_summary(self, file_path):
         llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-1106")
-        chain = load_summarize_chain(llm, chain_type="map_reduce")
-        docs = []
-        for file in file_paths:
-            print("POTENTIAL: ", file)
-            if self.is_not_image(file):
-                code = self.gitHubScraper.get_file_raw(file)
-                if code:
-                    docs.append(Document(page_content=code, metadata={"file_path": file}))
-
-        res = "Code not found."
-        if docs:
-            res = chain.run(docs)
-        return res
+        chain = load_summarize_chain(llm, chain_type="stuff")
+        if self.is_not_image(file_path):
+            code = self.gitHubScraper.get_file_raw(file_path)
+            if code:
+                doc = [Document(page_content=code, metadata={"file_path": file_path})]
+                res = chain.run(doc)
+                return res
+        return "Code not found."
     
 
     def summarize_files(self, file_paths):
@@ -102,12 +121,12 @@ class ChatRover():
         llm = ChatOpenAI(temperature=0)
 
         # Map step: Define individual file summarization
-        map_template = "Summarize the following code:\n{doc}\nSummary:"
+        map_template = "Summarize the following code and reference it's file path:\n{doc}\nSummary:"
         map_prompt = PromptTemplate.from_template(map_template)
         map_chain = LLMChain(llm=llm, prompt=map_prompt)
 
         # Reduce step: Define how to combine individual summaries
-        reduce_template = "Combine the following summaries:\n{docs}\nCombined Summary:"
+        reduce_template = "Combine the following code file summaries:\n{docs}\nCombined Summary:"
         reduce_prompt = PromptTemplate.from_template(reduce_template)
         reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
 
@@ -123,8 +142,6 @@ class ChatRover():
             document_variable_name="doc",
             return_intermediate_steps=False)
 
-        # Load and split documents
-        # docs = [self.gitHubScraper.get_file_raw(fp) for fp in file_paths]
         docs = []
         for file in file_paths:
             if self.is_not_image(file):
@@ -132,10 +149,6 @@ class ChatRover():
                 if code:
                     docs.append(Document(page_content=code, metadata={"file_path": file}))
 
-        # text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        # split_docs = text_splitter.split_documents(docs)
-
-        # Summarize
         return map_reduce_chain.run(docs)
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
@@ -152,10 +165,14 @@ class ChatRover():
             top_file_paths.append(file_query[i].page_content)
             i+=1
 
+        for file_path in top_file_paths:
+            summ = self.code_summary(file_path)
+            print(summ)
+
         # print("FILE 1 TOKENS: ", self.token_count(code_file1))
         # code_summary = self.code_summary(top_file_paths)
-        code_summary = self.summarize_files(top_file_paths)
-        print(code_summary)
+        # code_summary = self.code_summary(top_file_paths)
+        # print(code_summary)
 
 
 
