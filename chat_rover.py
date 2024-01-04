@@ -70,12 +70,6 @@ class ChatRover():
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         return vectorstore
 
-    def is_not_image(self, file_path):
-        # common image file extensions
-        image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
-        # Check if file path ends with any image extensions
-        return not any(file_path.lower().endswith(ext) for ext in image_extensions)
-
     def code_summary(self, file_path, query):
         llm = ChatOpenAI(temperature=0.3, model_name=self.model)
         custom_prompt = """
@@ -87,13 +81,12 @@ class ChatRover():
         prompt_template = PromptTemplate.from_template(custom_prompt)
         llm_chain = LLMChain(llm=llm, prompt=prompt_template)
 
-        if self.is_not_image(file_path):
-            code = self.gitHubScraper.get_file_raw(file_path)
-            if code:
-                code = self.trim(code, self.max_tokens)
-                input_dict = {'code': code, 'query': query}
-                res = llm_chain.run(input_dict)
-                return res
+        code = self.gitHubScraper.get_file_raw(file_path)
+        if code:
+            code = self.trim(code, self.max_tokens)
+            input_dict = {'code': code, 'query': query}
+            res = llm_chain.run(input_dict)
+            return res
         return "Code not found."
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
