@@ -136,8 +136,8 @@ class ChatRover():
             removed_entry = self.conversation_history.pop(0)
             self.conversation_tokens -= self.token_count(removed_entry['content'])
 
-    # interact with the LLM and update conversation history
-    # yields to take advantage of chat streaming
+    # Interact with the LLM and update conversation history
+    # Yields to take advantage of chat streaming
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
 
