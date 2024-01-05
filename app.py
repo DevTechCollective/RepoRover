@@ -20,7 +20,8 @@ fun_facts = [
     "The Python programming language is not named after the snake, but after the British comedy group Monty Python.",
     "As of my last update, the most forked GitHub repository was FreeCodeCamp, a non-profit organization that helps people learn to code for free.",
     "The first computer virus was created in 1971 and was named 'Creeper'. It was an experimental self-replicating program.",
-    "The first ever video game was created in 1958 and was a simple tennis game, similar to Pong, called 'Tennis for Two'."
+    "The first ever video game was created in 1958 and was a simple tennis game, similar to Pong, called 'Tennis for Two'.",
+    "My creators built me during a Large Language Model hackathon in 2023."
 ]
 
 # Updates rover based on URL
@@ -46,7 +47,7 @@ if st.button("Learn the Repo"):
     if repo_url:
         random_fact = random.choice(fun_facts)
         st.info(f"Fun Fact: {random_fact}")
-        with st.spinner(f"Discovering new repo... Please wait."):
+        with st.spinner(f"Analyzing repository terrain... Please wait."):
             update_url(repo_url)
             st.session_state.messages = []
         st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")
@@ -69,7 +70,7 @@ if prompt := st.chat_input("Ask me anything about this repo"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     # start the spinner
-    spinner = st.spinner(f"Thinking deeply...")
+    spinner = st.spinner(f"Engaging in digital deep thought...")
     spinner.__enter__()
 
     first_chunk_received = False
