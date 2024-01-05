@@ -27,7 +27,7 @@ fun_facts = [
 # Updates rover based on URL
 def update_url(url):
     gitHubScraper = GitHubScraper(url)
-    st.session_state.sub_title = gitHubScraper.repo
+    st.session_state.sub_title = gitHubScraper.get_repo_name()
     st.session_state.chat_rover = ChatRover(gitHubScraper)
 
 
@@ -47,7 +47,7 @@ if st.button("Learn the Repo"):
     if repo_url:
         random_fact = random.choice(fun_facts)
         st.info(f"Fun Fact: {random_fact}")
-        with st.spinner(f"Analyzing repository terrain... Please wait."):
+        with st.spinner(f"Analyzing repository terrain... Please wait..."):
             update_url(repo_url)
             st.session_state.messages = []
         st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")

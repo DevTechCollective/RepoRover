@@ -11,8 +11,20 @@ class GitHubScraper:
         self.github_url = github_url
         self.owner, self.repo = self.get_github_repo_info()
         self.branch = self.get_default_branch() if branch is None else branch
-        self.root_readme = ""   # Will be set upon traversing file structue
-        self.file_paths = self.get_repo_file_structure(condensed)
+
+        self.root_readme = ""
+        self.file_paths = []
+        self.set_files(condensed)
+
+    # Getters
+    def get_repo_name(self):
+        return self.repo
+    
+    def get_file_paths(self):
+        return self.file_paths
+    
+    def get_readme(self):
+        return self.root_readme
 
     def get_github_repo_info(self):
         parts = self.github_url.split('/')
@@ -30,13 +42,12 @@ class GitHubScraper:
             print("Error fetching default branch:", response.status_code, response.text)
             return None
 
-    def get_repo_file_structure(self, condese=False):
+    def set_files(self, condese=False):
         url = f"https://api.github.com/repos/{self.owner}/{self.repo}/git/trees/{self.branch}?recursive=1"
         response = requests.get(url)
 
         if response.status_code == 200:
             data = response.json()
-            # files = map(lambda x: x['path'], data['tree'])
             files = []
             for file in data['tree']:
                 if file['type'] == 'blob':
@@ -49,10 +60,10 @@ class GitHubScraper:
                         files.append(file['path'])
             if condese:
                 files = self._condense_file_structure(files)
-            return files
+            self.file_paths = files
         else:
             print("Error:", response.status_code, response.text)
-            return None
+
 
     def get_file_raw(self, file_path):
         url = f'https://api.github.com/repos/{self.owner}/{self.repo}/contents/{file_path}?ref={self.branch}'

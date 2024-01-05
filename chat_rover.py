@@ -26,8 +26,8 @@ class ChatRover():
 
         # Constants
         self.model = "gpt-3.5-turbo-1106"
-        self.max_tokens = 16000
-        self.trim_token_limit = self.max_tokens // 3
+        self.max_model_tokens = 16000
+        self.response_token_limit = self.max_model_tokens // 3
         self.readme_top_k = 5
         self.file_top_k = 10
         self.files_to_scrape = 2
@@ -36,14 +36,14 @@ class ChatRover():
         self.readme_vector = self.create_readme_vector()
         self.file_vector = self.create_file_vector()
 
-        self.repo = self.gitHubScraper.repo
+        self.repo = self.gitHubScraper.get_repo_name()
         self.conversation_history = []
         self.conversation_tokens = 0
         self.encoding = tiktoken.encoding_for_model(self.model)
 
     # Returns vector store where each entry is a single file path
     def create_file_vector(self):
-        files = self.gitHubScraper.file_paths
+        files = self.gitHubScraper.get_file_paths()
         if not files:
             files = "Files not found."
 
@@ -57,7 +57,7 @@ class ChatRover():
 
     # Returns vector store where each entry is a chunk of the Readme
     def create_readme_vector(self):
-        data = self.gitHubScraper.root_readme
+        data = self.gitHubScraper.get_readme()
         if not data:
             data = "Readme not found."
 
@@ -80,7 +80,7 @@ class ChatRover():
 
         code = self.gitHubScraper.get_file_raw(file_path)
         if code:
-            code = self.trim(code, self.max_tokens)
+            code = self.trim(code, self.max_model_tokens)
             input_dict = {'code': code, 'query': query}
             res = llm_chain.run(input_dict)
             return res
@@ -98,8 +98,8 @@ class ChatRover():
         readme_string = "\n".join(doc.page_content for doc in readme_query)
         file_string = ",".join(doc.page_content for doc in file_query)
 
-        readme_response = self.trim(readme_string, self.trim_token_limit)
-        file_response = self.trim(file_string, self.trim_token_limit)
+        readme_response = self.trim(readme_string, self.response_token_limit)
+        file_response = self.trim(file_string, self.response_token_limit)
 
         readme_prompt = "README.md portion:\n" + readme_response
         file_prompt = "Comma seperated file structure portion:\n" + file_response
@@ -130,7 +130,7 @@ class ChatRover():
         self.conversation_history.append({"role": role, "content": content})
         self.conversation_tokens += self.token_count(content)
 
-        while self.conversation_tokens > self.max_tokens and self.conversation_history:
+        while self.conversation_tokens > self.max_model_tokens and self.conversation_history:
             removed_entry = self.conversation_history.pop(0)
             self.conversation_tokens -= self.token_count(removed_entry['content'])
 
