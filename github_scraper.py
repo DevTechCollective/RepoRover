@@ -42,7 +42,7 @@ class GitHubScraper:
             print("Error fetching default branch:", response.status_code, response.text)
             return None
 
-    def set_files(self, condese=False):
+    def set_files(self, condensed=False):
         url = f"https://api.github.com/repos/{self.owner}/{self.repo}/git/trees/{self.branch}?recursive=1"
         response = requests.get(url)
 
@@ -58,7 +58,7 @@ class GitHubScraper:
                             # must use correct casing to get file
                             self.root_readme = self.get_file_raw(file['path'])  
                         files.append(file['path'])
-            if condese:
+            if condensed:
                 files = self._condense_file_structure(files)
             self.file_paths = files
         else:

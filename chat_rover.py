@@ -61,11 +61,13 @@ class ChatRover():
         if not data:
             data = "Readme not found."
 
+        print("Creating readme vector...")
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=chunk) for chunk in text_splitter.split_text(data)]
 
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
+        print("Readme vector complete!")
         return vectorstore
 
     def code_summary(self, file_path, query):
@@ -89,7 +91,7 @@ class ChatRover():
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
         role_prompt = f"""
-            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. Your expertise includes detailed knowledge of the repository's structure, critical portions of the README, and summaries of key files based on user queries. You do not have to use the summaries of files if they are not relevant. If they are relevant, feel free to copy them verbatum or you may choose to extract parts of them to best answer the user. Below is the relevant file structure, selected README excerpts, and summaries of important files. Using this information, please provide precise answers to the following question, referencing specific files or sections when useful.
+            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. Your expertise includes detailed knowledge of the repository's structure, critical portions of the README, and summaries of key files based on user queries. You do not have to use the summaries of files if they are not relevant. If they are relevant, feel free to copy them verbatum or you may choose to extract parts of them to best answer the user. Below is the relevant file structure, selected README excerpts, and summaries of important files. Using this information, please provide precise answers to the following question, referencing specific files or sections when useful. You are responding directly to the user. Only address the user in your response.
             """
 
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
