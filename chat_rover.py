@@ -32,7 +32,7 @@ class ChatRover():
         self.file_top_k = 10
         self.files_to_scrape = 2
 
-        # create vector stores
+        # Create vector stores for RAG
         self.readme_vector = self.create_readme_vector()
         self.file_vector = self.create_file_vector()
 
@@ -137,7 +137,7 @@ class ChatRover():
             self.conversation_tokens -= self.token_count(removed_entry['content'])
 
     # interact with the LLM and update conversation history
-    # yields to takea advantage of chat streaming
+    # yields to take advantage of chat streaming
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
 
