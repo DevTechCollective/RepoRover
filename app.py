@@ -1,7 +1,7 @@
 from chat_rover import ChatRover
 import streamlit as st
 from github_scraper import GitHubScraper
-
+import time
 
 AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
@@ -11,7 +11,6 @@ USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/
 def update_url(url):
     gitHubScraper = GitHubScraper(url)
     st.session_state.sub_title = gitHubScraper.repo
-    # st.session_state.chat_rover = ChatRover(scraper.file_paths, scraper.root_readme, scraper.repo)
     st.session_state.chat_rover = ChatRover(gitHubScraper)
 
 
@@ -30,7 +29,6 @@ repo_url = st.text_input("Enter a Repo URL")
 if st.button("Learn the Repo"):
     if repo_url:
         with st.spinner("Discovering new repo... Performing initial scans... Please wait."):
-            # st.info("Processing... Please wait.")
             update_url(repo_url)
             st.session_state.messages = []
         st.success(f"New world discovered! Welcome to {st.session_state.sub_title}!")
@@ -38,7 +36,6 @@ if st.button("Learn the Repo"):
         st.write("Please enter a URL")
 
 st.header(sub_title)
-# st.markdown("<h3 style='text-align: center; color: orange;'> Roving: '{}'</h1>".format(sub_title), unsafe_allow_html=True)
 
 # generate chat interface
 if "messages" not in st.session_state:
@@ -49,16 +46,90 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
+
+
+
+
+# if prompt := st.chat_input("Ask me anything about this repo"):
+#     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
+#     st.session_state.messages.append({"role": "user", "content": prompt})
+
+#     with st.spinner(f"Travelling across {repo_name}..."):
+#         chat_response = chat_rover.run_chat(prompt)
+
+#     response = f"AI: {chat_response}"
+
+#     with st.chat_message("assistant", avatar=AVATAR_IMAGE):
+#         st.markdown(response)
+
+#     st.session_state.messages.append({"role": "assistant", "content": response})
+        
+
+
+
+# if prompt := st.chat_input("Ask me anything about this repo"):
+#     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
+#     st.session_state.messages.append({"role": "user", "content": prompt})
+
+#     # Use st.spinner as a context manager
+#     with st.spinner(f"Travelling across {repo_name}..."):
+#         first_chunk_received = False
+#         message_placeholder = st.empty()
+#         full_response = ""
+
+#         for response_chunk in chat_rover.run_chat(prompt):
+#             if not first_chunk_received:
+#                 first_chunk_received = True
+
+#             full_response += response_chunk
+
+#             with message_placeholder.container():
+#                 st.chat_message("assistant", avatar=AVATAR_IMAGE).markdown(full_response + "▌")
+#             # Optionally, add a small delay here to simulate typing speed
+
+#         # After receiving all chunks, update the message placeholder without the cursor
+#         with message_placeholder.container():
+#             st.chat_message("assistant", avatar=AVATAR_IMAGE).markdown(full_response)
+
+#         if not first_chunk_received:
+#             # Display a message or handle the case where no response is received
+#             st.error("No response received.")
+
+#     # Append the full response to the session state
+#     st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+
 if prompt := st.chat_input("Ask me anything about this repo"):
     st.chat_message("user", avatar=USER_IMAGE).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.spinner(f"Travelling across {repo_name}..."):
-        chat_response = chat_rover.run_chat(prompt)
+    # start the spinner
+    spinner = st.spinner(f"Thinking deeply...")
+    spinner.__enter__()
 
-    response = f"AI: {chat_response}"
+    first_chunk_received = False
+    message_placeholder = st.empty()
+    full_response = ""
 
-    with st.chat_message("assistant", avatar=AVATAR_IMAGE):
-        st.markdown(response)
+    for response_chunk in chat_rover.run_chat(prompt):
+        if not first_chunk_received:
+            # Stop the spinner once first chunk is received
+            spinner.__exit__(None, None, None)
+            first_chunk_received = True
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+        full_response += response_chunk
+
+        with message_placeholder.container():
+            st.chat_message("assistant", avatar=AVATAR_IMAGE).markdown(full_response + "▌")
+        time.sleep(0.05)  # small delay to simulate typing
+
+    # After receiving all chunks, update the message placeholder without the cursor
+    with message_placeholder.container():
+        st.chat_message("assistant", avatar=AVATAR_IMAGE).markdown(full_response)
+
+    if not first_chunk_received:
+        # Stop spinner if no chunks were received
+        spinner.__exit__(None, None, None)
+
+    # Append full response to the session state
+    st.session_state.messages.append({"role": "assistant", "content": full_response})

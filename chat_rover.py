@@ -8,13 +8,13 @@ from langchain.vectorstores import FAISS
 from langchain.schema.document import Document
 import tiktoken
 
-from langchain.chains.summarize import load_summarize_chain
+# from langchain.chains.summarize import load_summarize_chain
 from langchain_community.chat_models import ChatOpenAI
 
 # from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import StuffDocumentsChain, LLMChain
+from langchain.chains import LLMChain
 # load env
 load_dotenv()
 
@@ -33,6 +33,7 @@ class ChatRover():
         self.trim_token_limit = self.max_tokens // 3
         self.readme_top_k = 5
         self.file_top_k = 10
+        self.files_to_scrape = 2
 
         # create vector stores
         self.readme_vector = self.create_readme_vector()
@@ -107,9 +108,8 @@ class ChatRover():
         file_prompt = "Comma seperated file structure portion:\n" + file_response
         content_prompt = "Summary of contents for some of the files:\n"
 
-        top_k_files = 2
         i = 0
-        while i < len(file_query) and i < top_k_files:
+        while i < len(file_query) and i < self.files_to_scrape:
             file_path = file_query[i].page_content
             summary = self.code_summary(file_path, query)
             content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
@@ -138,6 +138,7 @@ class ChatRover():
             self.conversation_tokens -= self.token_count(removed_entry['content'])
 
     # interact with the LLM and update conversation history
+    # yields to takea advantage of chat streaming
     def run_chat(self, user_input):
         enhanced_input = self.retrieve_context(user_input)
 
@@ -152,7 +153,8 @@ class ChatRover():
         response = ""
         for chunk in stream:
             if chunk.choices[0].delta.content is not None:
-                response += chunk.choices[0].delta.content
+                response_chunk = chunk.choices[0].delta.content
+                yield response_chunk
+                response += response_chunk
 
         self.update_history("assistant", response)
-        return response
