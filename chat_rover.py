@@ -6,15 +6,12 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.schema.document import Document
-import tiktoken
-
-# from langchain.chains.summarize import load_summarize_chain
 from langchain_community.chat_models import ChatOpenAI
-
-# from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import LLMChain
+import tiktoken
+
 # load env
 load_dotenv()
 
