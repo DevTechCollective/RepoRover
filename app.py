@@ -1,8 +1,11 @@
+from openai import OpenAI
 from chat_rover import ChatRover
 import streamlit as st
 from github_scraper import GitHubScraper
 import time
 import random
+import os
+from dotenv import load_dotenv
 
 AVATAR_IMAGE = 'https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/rover3.png'
 USER_IMAGE = "https://raw.githubusercontent.com/Marcozc19/RepoRover/main/images/moon.png"
@@ -24,11 +27,30 @@ fun_facts = [
     "My creators built me during a Large Language Model hackathon in 2023."
 ]
 
+
+# Tests API Key
+def is_valid_key(api_key):
+    try:
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo-1106",
+            messages=[{'role': 'user', 'content': "Hello, world!"}],
+            max_tokens=5
+        )
+        # print(response)
+        # print(response.choices)
+        # print('choices' in response)
+        return response.choices is not None
+    except Exception as e:
+        print(e)
+        return False
+
+
 # Updates rover based on URL
 def update_url(url):
     gitHubScraper = GitHubScraper(url)
     st.session_state.repo_name = gitHubScraper.get_repo_name()
-    st.session_state.chat_rover = ChatRover(gitHubScraper)
+    st.session_state.chat_rover = ChatRover(gitHubScraper, st.session_state.api_key)
 
 
 # Get the Rover if it exists
@@ -39,6 +61,27 @@ sub_title = f"Currently Exploring {repo_name}" if repo_name != "" else ""
 # Title for the app
 st.title("RepoRover")
 
+
+# Get API Key
+if 'api_key' not in st.session_state or st.session_state.api_key is None:
+    # use .env key if there is .env
+    load_dotenv()
+    if "OPENAI_API_KEY" in os.environ:
+        api_key = os.environ["OPENAI_API_KEY"]
+        if is_valid_key(api_key):
+            st.session_state.api_key = api_key
+            st.success("API Key loaded from .env file")
+        else:
+            st.error("Invalid API Key from .env file")
+    else:
+        api_key = st.text_input("Enter your OpenAI API key", type="password")
+        if st.button('Submit'):
+            if is_valid_key(api_key):
+                st.session_state.api_key = api_key
+                st.success("API Key accepted.")
+            else:
+                st.error("Invalid API Key.")
+
 # Input box
 repo_url = st.text_input("Enter a Repo URL")
 
@@ -47,7 +90,7 @@ if st.button("Learn the Repo"):
     if repo_url:
         random_fact = random.choice(fun_facts)
         st.info(f"Fun Fact: {random_fact}")
-        with st.spinner(f"Analyzing repository terrain... Please wait..."):
+        with st.spinner("Analyzing repository terrain... Please wait..."):
             update_url(repo_url)
             st.session_state.messages = []
         st.success(f"New world discovered! Welcome to {st.session_state.repo_name}!")
@@ -70,7 +113,7 @@ if prompt := st.chat_input("Ask me anything about this repo"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     # start the spinner
-    spinner = st.spinner(f"Engaging in digital deep thought...")
+    spinner = st.spinner("Engaging in digital deep thought...")
     spinner.__enter__()
 
     first_chunk_received = False

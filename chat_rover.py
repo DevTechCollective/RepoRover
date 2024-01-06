@@ -8,18 +8,17 @@ from langchain.vectorstores import FAISS
 from langchain.schema.document import Document
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import LLMChain
 import tiktoken
 
 # load env
-load_dotenv()
+# load_dotenv()
 
 
 class ChatRover():
 
-    def __init__(self, gitHubScraper):
-        api_key = os.getenv('OPENAI_API_KEY')
+    def __init__(self, gitHubScraper, api_key):
+        # api_key = os.getenv('OPENAI_API_KEY')
         self.client = OpenAI(api_key=api_key)
 
         self.gitHubScraper = gitHubScraper
