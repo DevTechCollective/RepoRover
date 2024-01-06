@@ -15,14 +15,15 @@ class GitHubScraper:
         self.root_readme = ""
         self.file_paths = []
         self.set_files(condensed)
+        self.file_contents = {}
 
     # Getters
     def get_repo_name(self):
         return self.repo
-    
+
     def get_file_paths(self):
         return self.file_paths
-    
+
     def get_readme(self):
         return self.root_readme
 
@@ -64,8 +65,10 @@ class GitHubScraper:
         else:
             print("Error:", response.status_code, response.text)
 
-
     def get_file_raw(self, file_path):
+        if file_path in self.file_contents:
+            return self.file_contents[file_path]
+
         url = f'https://api.github.com/repos/{self.owner}/{self.repo}/contents/{file_path}?ref={self.branch}'
         headers = {'Accept': 'application/vnd.github.v3.raw'}
 
