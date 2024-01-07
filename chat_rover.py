@@ -60,7 +60,7 @@ class ChatRover():
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=chunk) for chunk in text_splitter.split_text(data)]
 
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("Readme vector complete!")
         return vectorstore
