@@ -66,7 +66,7 @@ class ChatRover():
         return vectorstore
 
     def code_summary(self, file_path, query):
-        llm = ChatOpenAI(temperature=0.3, model_name=self.model)
+        llm = ChatOpenAI(temperature=0.3, model_name=self.model, openai_api_key=self.api_key)
         custom_prompt = """
         Provide a clear and concise summary on the code that you will be given. You should reference specific parts of the code. Be technical. Your summary will be used by another LLM to explain specific parts of the user query. Focus on those parts that are most relevant to the user query. Do not speak to or address the user. Limit your response to 150 words.
 
