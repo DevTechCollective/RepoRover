@@ -12,10 +12,11 @@ class GitHubScraper:
         self.owner, self.repo = self.get_github_repo_info()
         self.branch = self.get_default_branch() if branch is None else branch
 
+        self.file_contents = {}
         self.root_readme = ""
         self.file_paths = []
         self.set_files(condensed)
-        self.file_contents = {}
+        
 
     # Getters
     def get_repo_name(self):
