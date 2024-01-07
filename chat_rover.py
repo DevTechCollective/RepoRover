@@ -9,11 +9,9 @@ from langchain.schema.document import Document
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import LLMChain
-import tiktoken
-
 from langchain_core.prompts import ChatPromptTemplate
 
+import tiktoken
 
 # load env
 load_dotenv()
@@ -87,7 +85,7 @@ class ChatRover():
         User Query: {query}
         """
         prompt = ChatPromptTemplate.from_template(custom_prompt)
-        model = ChatOpenAI(temperature=0.3, openai_api_key=self.api_key, model_name=self.model)
+        model = ChatOpenAI(openai_api_key=self.api_key, model_name=self.model)
         chain = prompt | model
 
         code = self.gitHubScraper.get_file_raw(file_path)
@@ -98,12 +96,46 @@ class ChatRover():
             return res
         return "Code not found."
 
+    # # Returns relevant, trimmed, and prompted input for model via vector similarity search
+    # def retrieve_context(self, query):
+    #     role_prompt = f"""
+    #         As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. 
+    #         Your expertise includes detailed knowledge of the repository's structure, 
+    #         critical portions of the README, and summaries of key files based on user queries. 
+    #         You do not have to use the summaries of files if they are not relevant. 
+    #         If they are relevant, feel free to copy them verbatum or you may choose to extract 
+    #         parts of them to best answer the user. 
+    #         Below is the relevant file structure, selected README excerpts, and summaries of important files. 
+    #         Using this information, please provide precise answers to the following question, 
+    #         referencing specific files or sections when useful. 
+    #         You are responding directly to the user. Only address the user in your response.
+    #         """
+
+    #     readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
+    #     file_query = self.file_vector.similarity_search(query, self.file_top_k)
+
+    #     readme_string = "\n".join(doc.page_content for doc in readme_query)
+    #     file_string = ",".join(doc.page_content for doc in file_query)
+
+    #     readme_response = self.trim(readme_string, self.response_token_limit)
+    #     file_response = self.trim(file_string, self.response_token_limit)
+
+    #     readme_prompt = "README.md portion:\n" + readme_response
+    #     file_prompt = "Comma seperated file structure portion:\n" + file_response
+    #     content_prompt = "Summary of contents for some of the files:\n"
+
+    #     i = 0
+    #     while i < len(file_query) and i < self.files_to_scrape:
+    #         file_path = file_query[i].page_content
+    #         summary = self.code_summary(file_path, query)
+    #         content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
+    #         i += 1
+
+    #     return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\n{content_prompt}\n\nUser Q: {query}"
+
+
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
-        role_prompt = f"""
-            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. Your expertise includes detailed knowledge of the repository's structure, critical portions of the README, and summaries of key files based on user queries. You do not have to use the summaries of files if they are not relevant. If they are relevant, feel free to copy them verbatum or you may choose to extract parts of them to best answer the user. Below is the relevant file structure, selected README excerpts, and summaries of important files. Using this information, please provide precise answers to the following question, referencing specific files or sections when useful. You are responding directly to the user. Only address the user in your response.
-            """
-
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
         file_query = self.file_vector.similarity_search(query, self.file_top_k)
 
@@ -113,19 +145,32 @@ class ChatRover():
         readme_response = self.trim(readme_string, self.response_token_limit)
         file_response = self.trim(file_string, self.response_token_limit)
 
-        readme_prompt = "README.md portion:\n" + readme_response
-        file_prompt = "Comma seperated file structure portion:\n" + file_response
-        content_prompt = "Summary of contents for some of the files:\n"
-
+        content_response = ""
         i = 0
         while i < len(file_query) and i < self.files_to_scrape:
             file_path = file_query[i].page_content
             summary = self.code_summary(file_path, query)
-            print("HERE: ",file_path, summary)
-            content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
+            content_response += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
             i += 1
 
-        return f"{role_prompt}\n\n{readme_prompt}\n\n{file_prompt}\n\n{content_prompt}\n\nUser Q: {query}"
+        role_prompt = f"""
+            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. 
+            Your expertise includes detailed knowledge of the repository's structure, 
+            critical portions of the README, and summaries of key files based on user queries. 
+            You do not have to use the summaries of files if they are not relevant. 
+            If they are relevant, feel free to copy them verbatum or you may choose to extract 
+            parts of them to best answer the user. 
+            Below is the relevant file structure, selected README excerpts, and summaries of important files. 
+            Using this information, please provide precise answers to the following question, 
+            referencing specific files or sections when useful. 
+            You are responding directly to the user. Only address the user in your response.
+
+            README.md portion: '{readme_response}'
+            Comma seperated file structure: '{file_response}'
+            Summary of file contents: '{content_response}'
+            User query: '{query}'
+            """
+        return role_prompt
 
     # Trim text by number of tokens to obey context window size
     def trim(self, text, token_limit):
