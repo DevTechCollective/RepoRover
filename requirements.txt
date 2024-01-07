@@ -3,6 +3,6 @@ altair==4
 openai
 numpy
 tiktoken
-langchain
+langchain==0.0.353
 faiss-cpu
 python-dotenv
