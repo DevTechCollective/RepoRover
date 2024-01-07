@@ -4,3 +4,4 @@ openai
 numpy
 tiktoken
 langchain
+python-dotenv

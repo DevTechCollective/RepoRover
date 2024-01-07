@@ -1,6 +1,4 @@
 from openai import OpenAI
-import os
-from dotenv import load_dotenv
 
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -10,9 +8,6 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import tiktoken
-
-# load env
-# load_dotenv()
 
 
 class ChatRover():

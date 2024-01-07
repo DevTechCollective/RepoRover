@@ -101,12 +101,3 @@ class GitHubScraper:
             formatted_structure += "  " * current_depth + path_segments[-1] + "\n"
 
         return formatted_structure
-
-
-if __name__ == "__main__":
-    # Replace with your GitHub URL
-    github_url = 'https://github.com/Stability-AI/generative-models'
-
-    scraper = GitHubScraper(github_url)
-    print(scraper.root_readme)
-    print(scraper.file_paths)
