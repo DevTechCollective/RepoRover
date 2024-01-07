@@ -14,6 +14,7 @@ class ChatRover():
 
     def __init__(self, gitHubScraper, api_key):
         # api_key = os.getenv('OPENAI_API_KEY')
+        self.api_key = api_key
         self.client = OpenAI(api_key=api_key)
 
         self.gitHubScraper = gitHubScraper
@@ -44,7 +45,7 @@ class ChatRover():
         print("Creating file vector...")
         split_data = [Document(page_content=file) for file in files]
 
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("File vector complete!")
         return vectorstore
