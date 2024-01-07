@@ -72,30 +72,9 @@ class ChatRover():
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("Readme vector complete!")
         return vectorstore
-
-    # def code_summary(self, file_path, query):
-    #     llm = ChatOpenAI(temperature=0.3, model_name=self.model)
-    #     custom_prompt = """
-    #     Provide a clear and concise summary on the code that you will be given as it relates to a user query. 
-    #     You should reference specific parts of the code. 
-    #     Be technical. Your summary will be used by another LLM to explain specific parts of the code. 
-    #     Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.
-    #     Do not speak to or address the user. 
-    #     Limit your response to 200 words.
-    #     Code: {code}
-    #     User Query: {query}
-    #     """
-    #     prompt_template = PromptTemplate.from_template(custom_prompt)
-    #     llm_chain = LLMChain(llm=llm, prompt=prompt_template)
-
-    #     code = self.gitHubScraper.get_file_raw(file_path)
-    #     if code:
-    #         code = self.trim(code, self.max_model_tokens)
-    #         input_dict = {'code': code, 'query': query}
-    #         res = llm_chain.run(input_dict)
-    #         return res
-    #     return "Code not found."
-
+    
+    # Returns summary of file contents for a given file_path that is relevant 
+    # to the user query
     def code_summary(self, file_path, query):
         custom_prompt = """
         Provide a clear and concise summary on the code that you will be given as it relates to a user query. 
