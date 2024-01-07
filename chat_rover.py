@@ -73,8 +73,13 @@ class ChatRover():
     def code_summary(self, file_path, query):
         llm = ChatOpenAI(temperature=0.3, model_name=self.model)
         custom_prompt = """
-        Provide a clear and concise summary on the code that you will be given. You should reference specific parts of the code. Be technical. Your summary will be used by another LLM to explain specific parts of the user query. Focus on those parts that are most relevant to the user query. Do not speak to or address the user. Limit your response to 150 words.
-
+        Provide a clear and concise summary on the code that you will be given. 
+        You should reference specific parts of the code. 
+        Be technical. Your summary will be used by another LLM to explain specific parts of the user query. 
+        Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.
+        Do not speak to or address the user. 
+        Limit your response to 150 words.
+        Code: {code}
         User Query: {query}
         """
         prompt_template = PromptTemplate.from_template(custom_prompt)
@@ -111,6 +116,7 @@ class ChatRover():
         while i < len(file_query) and i < self.files_to_scrape:
             file_path = file_query[i].page_content
             summary = self.code_summary(file_path, query)
+            # print("HERE: ",file_path, summary)
             content_prompt += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
             i += 1
 
