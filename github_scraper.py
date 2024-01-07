@@ -1,8 +1,8 @@
 import requests
 
-IGNORE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.svg', '.mp4', '.mp3',
-               '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.tar', '.gz', '.rar',
-               '.7z', '.exe', '.dll', '.jar', '.war', '.class']
+IGNORE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'svg', 'mp4', 'mp3',
+               'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'tar', 'gz', 'rar',
+               '7z', 'exe', 'dll', 'jar', 'war', 'class']
 
 
 class GitHubScraper:
