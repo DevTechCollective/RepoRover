@@ -108,14 +108,14 @@ class ChatRover():
         User Query: {query}
         """
         prompt = ChatPromptTemplate.from_template(custom_prompt)
-        model = ChatOpenAI(openai_api_key=self.api_key, model_name=self.model)
-        llm_chain = prompt | model
+        model = ChatOpenAI(temperature=0.3, openai_api_key=self.api_key, model_name=self.model)
+        chain = prompt | model
 
         code = self.gitHubScraper.get_file_raw(file_path)
         if code:
             code = self.trim(code, self.max_model_tokens)
             input_dict = {'code': code, 'query': query}
-            res = llm_chain.invoke(input_dict).content
+            res = chain.invoke(input_dict).content
             return res
         return "Code not found."
 
