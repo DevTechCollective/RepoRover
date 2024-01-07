@@ -4,5 +4,5 @@ openai
 numpy
 tiktoken
 langchain
-faiss-gpu
+faiss-cpu
 python-dotenv
