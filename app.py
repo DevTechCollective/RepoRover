@@ -73,6 +73,13 @@ if 'api_key' not in st.session_state or st.session_state.api_key is None:
             st.success("API Key loaded from .env file")
         else:
             st.error("Invalid API Key from .env file")
+    elif "OPENAI_API_KEY" in st.secrets:
+        api_key = st.secrets["OPENAI_API_KEY"]
+        if is_valid_key(api_key):
+            st.session_state.api_key = api_key
+            st.success("API Key loaded from secrets file")
+        else:
+            st.error("Invalid API Key from sectets file")
     else:
         api_key = st.text_input("Enter your OpenAI API key", type="password")
         if st.button('Submit'):

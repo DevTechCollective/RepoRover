@@ -16,3 +16,6 @@ file_structure.txt
 
 #readme
 readme.txt
+
+# secrets
+secrets.toml
