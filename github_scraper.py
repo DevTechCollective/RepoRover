@@ -7,8 +7,10 @@ IGNORE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'svg', 'mp4',
 
 class GitHubScraper:
 
-    def __init__(self, github_url, branch=None, condensed=False):
+    def __init__(self, github_url, token=None, branch=None, condensed=False):
         self.github_url = github_url
+        self.token = token
+        self.header = {'Authorization': f'token {self.token}'} if self.token else {}
         self.owner, self.repo = self.get_github_repo_info()
         self.branch = self.get_default_branch() if branch is None else branch
 
@@ -16,7 +18,6 @@ class GitHubScraper:
         self.root_readme = ""
         self.file_paths = []
         self.set_files(condensed)
-        
 
     # Getters
     def get_repo_name(self):
@@ -36,7 +37,7 @@ class GitHubScraper:
 
     def get_default_branch(self):
         url = f"https://api.github.com/repos/{self.owner}/{self.repo}"
-        response = requests.get(url)
+        response = requests.get(url, headers=self.header)
         if response.status_code == 200:
             data = response.json()
             return data.get('default_branch', 'master')
@@ -46,7 +47,7 @@ class GitHubScraper:
 
     def set_files(self, condensed=False):
         url = f"https://api.github.com/repos/{self.owner}/{self.repo}/git/trees/{self.branch}?recursive=1"
-        response = requests.get(url)
+        response = requests.get(url, headers=self.header)
 
         if response.status_code == 200:
             data = response.json()
@@ -58,7 +59,7 @@ class GitHubScraper:
                     if file_extension not in IGNORE_EXTS:
                         if file_name == 'readme.md':
                             # must use correct casing to get file
-                            self.root_readme = self.get_file_raw(file['path'])  
+                            self.root_readme = self.get_file_raw(file['path'])
                         files.append(file['path'])
             if condensed:
                 files = self._condense_file_structure(files)
@@ -71,7 +72,8 @@ class GitHubScraper:
             return self.file_contents[file_path]
 
         url = f'https://api.github.com/repos/{self.owner}/{self.repo}/contents/{file_path}?ref={self.branch}'
-        headers = {'Accept': 'application/vnd.github.v3.raw'}
+        headers = self.header.copy()
+        headers['Accept'] = 'application/vnd.github.v3.raw'
 
         response = requests.get(url, headers=headers)
 

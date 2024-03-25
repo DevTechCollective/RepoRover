@@ -48,7 +48,7 @@ def is_valid_key(api_key):
 
 # Updates rover based on URL
 def update_url(url):
-    gitHubScraper = GitHubScraper(url)
+    gitHubScraper = GitHubScraper(url, token=st.secrets["GITHUB_TOKEN"])
     st.session_state.repo_name = gitHubScraper.get_repo_name()
     st.session_state.chat_rover = ChatRover(gitHubScraper, st.session_state.api_key)
 
@@ -60,7 +60,6 @@ sub_title = f"Currently Exploring {repo_name}" if repo_name != "" else ""
 
 # Title for the app
 st.title("RepoRover")
-
 
 # Get API Key
 if 'api_key' not in st.session_state or st.session_state.api_key is None:
