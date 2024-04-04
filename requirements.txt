@@ -5,7 +5,8 @@ numpy
 tiktoken
 langchain==0.0.353
 langchain_openai
-langchain_community
+langchain_community==0.0.9
 langchain_core
+langsmith==0.0.77
 faiss-cpu
 python-dotenv
