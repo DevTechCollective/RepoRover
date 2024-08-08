@@ -1,4 +1,5 @@
 import requests
+import os
 
 IGNORE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.svg', '.mp4', '.mp3',
                '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.tar', '.gz', '.rar',
@@ -11,6 +12,7 @@ class GitHubScraper:
         self.github_url = github_url
         self.owner, self.repo = self.get_github_repo_info()
         self.branch = self.get_default_branch() if branch is None else branch
+        self.post_scraper()
 
         self.root_readme = ""
         self.file_paths = []
@@ -98,6 +100,24 @@ class GitHubScraper:
             formatted_structure += "  " * current_depth + path_segments[-1] + "\n"
 
         return formatted_structure
+    
+    def post_scraper(self):
+        url = "http://localhost:8080/info" 
+        data = {
+            "owner": self.owner,
+            "repo": self.repo,
+            "branch": self.branch,
+        }
+
+        response = requests.post(url, json=data)
+
+        if response.status_code == 200:
+            print("Data posted successfully.")
+        else:
+            print("Failed to post data:", response.status_code, response.text)
+        os.system("PAUSE")
+        return
+
 
 
 if __name__ == "__main__":

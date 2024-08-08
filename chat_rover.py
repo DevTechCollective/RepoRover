@@ -3,12 +3,13 @@ import os
 from dotenv import load_dotenv
 
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.schema.document import Document
 from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
+import requests
 
 import tiktoken
 
@@ -29,7 +30,7 @@ class ChatRover():
         self.max_model_tokens = 16000
         self.response_token_limit = self.max_model_tokens // 3
         self.readme_top_k = 5
-        self.file_top_k = 10
+        self.file_top_k = 5
         self.files_to_scrape = 2
 
         # Create vector stores for RAG
@@ -72,47 +73,78 @@ class ChatRover():
     
     # Returns summary of file contents for a given file_path that is relevant 
     # to the user query
-    def code_summary(self, file_path, query):
-        custom_prompt = """
-        Provide a clear and concise summary on the code that you will be given as it relates to a user query. 
-        You should reference specific parts of the code. 
-        Be technical. Your summary will be used by another LLM to explain specific parts of the code. 
-        Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.
-        Do not speak to or address the user. 
-        Limit your response to 200 words.
-        Code: {code}
-        User Query: {query}
-        """
-        prompt = ChatPromptTemplate.from_template(custom_prompt)
-        model = ChatOpenAI(openai_api_key=self.api_key, model_name=self.model)
-        chain = prompt | model
+    def code_summary(self, file_paths, query):
+        url = "http://localhost:8080/summary" 
+        data = {
+            "file_path": file_paths,
+            "query": query
+        }
 
-        code = self.gitHubScraper.get_file_raw(file_path)
-        if code:
-            code = self.trim(code, self.max_model_tokens)
-            input_dict = {'code': code, 'query': query}
-            res = chain.invoke(input_dict).content
-            return res
-        return "Code not found."
+        response = requests.post(url, json=data)
+        
+        if response.status_code == 200:
+            return response.json()['summary']
+        else:
+            return "Error: Unable to retrieve code summary."
+
+        # custom_prompt = """
+        # Provide a clear and concise summary on the code that you will be given as it relates to a user query. 
+        # You should reference specific parts of the code. 
+        # Be technical. Your summary will be used by another LLM to explain specific parts of the code. 
+        # Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.
+        # Do not speak to or address the user. 
+        # Limit your response to 200 words.
+        # Code: {code}
+        # User Query: {query}
+        # """
+        # prompt = ChatPromptTemplate.from_template(custom_prompt)
+        # model = ChatOpenAI(openai_api_key=self.api_key, model_name=self.model)
+        # chain = prompt | model
+
+        # code = self.gitHubScraper.get_file_raw(file_path)
+        # if code:
+        #     code = self.trim(code, self.max_model_tokens)
+        #     input_dict = {'code': code, 'query': query}
+        #     res = chain.invoke(input_dict).content
+        #     return res
+        # return "Code not found."
+
+    def document_to_dict(self, doc):
+        return {
+            "page_content": doc.page_content,
+            "metadata": doc.metadata
+        }
 
     # Returns relevant, trimmed, and prompted input for model via vector similarity search
     def retrieve_context(self, query):
+        print("similarity search start")
         readme_query = self.readme_vector.similarity_search(query, self.readme_top_k)
         file_query = self.file_vector.similarity_search(query, self.file_top_k)
+        print(type(file_query), file_query)
 
+        print("call api")
+        url = "http://localhost:8080/summary" 
+        data = {
+            "file_query": [self.document_to_dict(doc) for doc in file_query],
+            "readme_query": [self.document_to_dict(doc) for doc in readme_query],
+            "query": query
+        }
+
+        response = requests.post(url, json=data)
+        print("response", response)
         readme_string = "\n".join(doc.page_content for doc in readme_query)
-        file_string = ",".join(doc.page_content for doc in file_query)
+        # file_string = ",".join(doc.page_content for doc in file_query)
 
         readme_response = self.trim(readme_string, self.response_token_limit)
-        file_response = self.trim(file_string, self.response_token_limit)
+        # file_response = self.trim(file_string, self.response_token_limit)
 
-        content_response = ""
-        i = 0
-        while i < len(file_query) and i < self.files_to_scrape:
-            file_path = file_query[i].page_content
-            summary = self.code_summary(file_path, query)
-            content_response += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
-            i += 1
+        # content_response = ""
+        # i = 0
+        # while i < len(file_query) and i < self.files_to_scrape:
+        #     file_path = file_query[i].page_content
+        #     summary = self.code_summary(file_path, query)
+        #     content_response += "File: " + file_path + "\n" + "Summary: " + summary + "\n"
+        #     i += 1
 
         role_prompt = f"""
             As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. 
@@ -156,7 +188,9 @@ class ChatRover():
     # Interact with the LLM and update conversation history
     # Yields to take advantage of chat streaming
     def run_chat(self, user_input):
+        print(user_input)
         enhanced_input = self.retrieve_context(user_input)
+        print("enhanced input", enhanced_input)
 
         self.update_history("user", enhanced_input)
         print("TOKENS: ", self.conversation_tokens)

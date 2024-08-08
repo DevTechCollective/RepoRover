@@ -3,4 +3,6 @@ altair==4
 openai
 numpy
 tiktoken
-langchain
+langchain_community
+faiss_cpu
+python-dotenv
