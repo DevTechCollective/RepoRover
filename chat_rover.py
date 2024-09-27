@@ -1,26 +1,20 @@
 from openai import OpenAI
-import os
-from dotenv import load_dotenv
 
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.schema.document import Document
-from langchain_community.chat_models import ChatOpenAI
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 import tiktoken
 
-# load env
-load_dotenv()
-
 
 class ChatRover():
 
-    def __init__(self, gitHubScraper):
-        self.api_key = os.getenv('OPENAI_API_KEY')
-        self.client = OpenAI(api_key=self.api_key)
+    def __init__(self, gitHubScraper, api_key):
+        self.api_key = api_key
+        self.client = OpenAI(api_key=api_key)
 
         self.gitHubScraper = gitHubScraper
 
@@ -50,7 +44,7 @@ class ChatRover():
         print("Creating file vector...")
         split_data = [Document(page_content=file) for file in files]
 
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("File vector complete!")
         return vectorstore
@@ -65,21 +59,17 @@ class ChatRover():
         text_splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
         split_data = [Document(page_content=chunk) for chunk in text_splitter.split_text(data)]
 
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         vectorstore = FAISS.from_documents(split_data, embedding=embeddings)
         print("Readme vector complete!")
         return vectorstore
-    
+
     # Returns summary of file contents for a given file_path that is relevant 
     # to the user query
     def code_summary(self, file_path, query):
         custom_prompt = """
-        Provide a clear and concise summary on the code that you will be given as it relates to a user query. 
-        You should reference specific parts of the code. 
-        Be technical. Your summary will be used by another LLM to explain specific parts of the code. 
-        Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.
-        Do not speak to or address the user. 
-        Limit your response to 200 words.
+        Provide a clear and concise summary on the code that you will be given as it relates to a user query. You should reference specific parts of the code. Be technical. Your summary will be used by another LLM to explain specific parts of the code. Focus on those parts that are most relevant to the user query, the user may ask for specific code snippets which you will provide.  Do not speak to or address the user. Limit your response to 200 words.
+
         Code: {code}
         User Query: {query}
         """
@@ -115,16 +105,7 @@ class ChatRover():
             i += 1
 
         role_prompt = f"""
-            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. 
-            Your expertise includes detailed knowledge of the repository's structure, 
-            critical portions of the README, and summaries of key files based on user queries. 
-            You do not have to use the summaries of files if they are not relevant. 
-            If they are relevant, feel free to copy them verbatum or you may choose to extract 
-            parts of them to best answer the user. 
-            Below is the relevant file structure, selected README excerpts, and summaries of important files. 
-            Using this information, please provide precise answers to the following question, 
-            referencing specific files or sections when useful. 
-            You are responding directly to the user. Only address the user in your response.
+            As 'RepoRover', you are a specialized AI expert on the '{self.repo}' repository. Your expertise includes detailed knowledge of the repository's structure, critical portions of the README, and summaries of key files based on user queries. You do not have to use the summaries of files if they are not relevant. If they are relevant, feel free to copy them verbatum or you may choose to extract parts of them to best answer the user. Below is the relevant file structure, selected README excerpts, and summaries of important files. Using this information, please provide precise answers to the following question, referencing specific files or sections when useful. You may also provide code snippets and refer to functions in the files. You are responding directly to the user. Only address the user (which you should call '{self.repo} Explorer') in your response.
 
             README.md portion: '{readme_response}'
             Comma seperated file structure: '{file_response}'
@@ -172,5 +153,5 @@ class ChatRover():
                 response_chunk = chunk.choices[0].delta.content
                 yield response_chunk
                 response += response_chunk
-                
+
         self.update_history("assistant", response)
